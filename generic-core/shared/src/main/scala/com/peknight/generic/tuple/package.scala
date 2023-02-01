@@ -29,30 +29,25 @@ package object tuple:
       case h *: t => Tuple.Append[Reverse[t], h]
       case _ => EmptyTuple
 
+  @tailrec private[this] def loop[F[_], T <: Tuple](remain: T, acc: F[Tuple])(f: [A] => (A, F[Tuple]) => F[Tuple])
+  : F[Tuple] =
+    remain match
+      case _: EmptyTuple => acc
+      case h *: t => loop(t, f(h, acc))(f)
+  end loop
+
   def reverse[T <: Tuple](tuple: T): Reverse[T] =
-    @tailrec def loop[U <: Tuple, V <: Tuple](remain: U, acc: V): Tuple =
-      remain match
-        case _: EmptyTuple => acc
-        case h *: t => loop(t, h *: acc)
-    loop(tuple, EmptyTuple).asInstanceOf[Reverse[T]]
+    loop[Id, T](tuple, EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => a *: acc).asInstanceOf[Reverse[T]]
 
   def flatMap[F[_] <: Tuple, T <: Tuple](tuple: T)(f: [t] => t => F[t]): Tuple.FlatMap[T, F] =
-    val rfa: Reverse[T] = reverse(tuple)
-    @tailrec def loop[U <: Tuple, V <: Tuple](remain: U, acc: V): Tuple =
-      remain match
-        case _: EmptyTuple => acc
-        case h *: t => loop(t, f(h) ++ acc)
-    loop(rfa, EmptyTuple).asInstanceOf[Tuple.FlatMap[T, F]]
-  end flatMap
+    loop[Id, Reverse[T]](reverse(tuple), EmptyTuple) { [A] => (a: A, acc: Id[Tuple]) =>
+      f(a) ++ acc
+    }.asInstanceOf[Tuple.FlatMap[T, F]]
 
   def traverse[F[_], G[_] : Applicative, T <: Tuple](fa: T)(f: [A] => A => G[F[A]]): G[LiftP[F, T]] =
-    val rfa: Reverse[T] = reverse(fa)
-    @tailrec def loop[U <: Tuple, V <: Tuple](remain: U, acc: G[V]): G[Tuple] =
-      remain match
-        case _: EmptyTuple => acc.asInstanceOf[G[Tuple]]
-        case h *: t => loop(t, Applicative[G].map2(f(h), acc)(_ *: _))
-    loop(rfa, Applicative[G].pure[Tuple](EmptyTuple)).asInstanceOf[G[LiftP[F, T]]]
-  end traverse
+    loop[G, Reverse[T]](reverse(fa), Applicative[G].pure(EmptyTuple)) { [A] => (a: A, acc: G[Tuple]) =>
+      Applicative[G].map2(f(a), acc)(_ *: _)
+    }.asInstanceOf[G[LiftP[F, T]]]
 
   def sequence[G[_] : Applicative, T <: Tuple](fga: LiftP[G, T]): G[T] =
     traverse[Id, G, LiftP[G, T]](fga)([A] => (a: A) => a.asInstanceOf).asInstanceOf[G[T]]
