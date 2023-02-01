@@ -36,6 +36,15 @@ package object tuple:
         case h *: t => loop(t, h *: acc)
     loop(tuple, EmptyTuple).asInstanceOf[Reverse[T]]
 
+  def flatMap[F[_] <: Tuple, T <: Tuple](tuple: T)(f: [t] => t => F[t]): Tuple.FlatMap[T, F] =
+    val rfa: Reverse[T] = reverse(tuple)
+    @tailrec def loop[U <: Tuple, V <: Tuple](remain: U, acc: V): Tuple =
+      remain match
+        case _: EmptyTuple => acc
+        case h *: t => loop(t, f(h) ++ acc)
+    loop(rfa, EmptyTuple).asInstanceOf[Tuple.FlatMap[T, F]]
+  end flatMap
+
   def traverse[F[_], G[_] : Applicative, T <: Tuple](fa: T)(f: [A] => A => G[F[A]]): G[LiftP[F, T]] =
     val rfa: Reverse[T] = reverse(fa)
     @tailrec def loop[U <: Tuple, V <: Tuple](remain: U, acc: G[V]): G[Tuple] =
