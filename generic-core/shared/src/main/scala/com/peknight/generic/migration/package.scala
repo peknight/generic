@@ -2,7 +2,9 @@ package com.peknight.generic
 
 import cats.data.Kleisli
 import cats.{Id, Monoid}
-import com.peknight.generic.tuple.*
+import com.peknight.generic.deriving.Mirror
+import com.peknight.generic.deriving.tuple.{summonAsTuple, summonValuesAsTuple}
+import com.peknight.generic.ops.tuple.*
 
 import scala.compiletime.constValue
 package object migration:
@@ -39,9 +41,9 @@ package object migration:
     prepend: Prepend.Aux[Added, Common, Unaligned],
     align: Align[Unaligned, Tuple.Zip[BLabels, BRepr]]
   ): Migration[A, B] = Kleisli((a: A) => bMirror.fromProduct(
-    align(prepend(monoid.empty, inter(summonValuesAsTuple[ALabels].zip(Tuple.fromProductTyped(a))))).map[Second] {
+    align(prepend(monoid.empty, inter(summonValuesAsTuple[ALabels].zip(Tuple.fromProductTyped(a))))).map[SecondElem] {
       [T] => (t: T) => t match
-        case (_, value) => value.asInstanceOf[Second[T]]
+        case (_, value) => value.asInstanceOf[SecondElem[T]]
     }
   ))
 

@@ -3,8 +3,9 @@ package com.peknight.generic
 import cats.data.State
 import cats.{Applicative, Eval, Id, Traverse}
 import com.peknight.generic.*
+import com.peknight.generic.deriving.Generic
 import com.peknight.generic.migration.{*, given}
-import com.peknight.generic.tuple.*
+import com.peknight.generic.ops.tuple.TupleOps.*
 
 import scala.annotation.tailrec
 
