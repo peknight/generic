@@ -1,6 +1,6 @@
 package com.peknight.generic.deriving
 
-import com.peknight.generic.deriving.Generic.zip
+import com.peknight.generic.deriving.Generic.map
 import com.peknight.generic.syntax.tuple.foldRight
 
 trait CsvEncoder[A]:
@@ -11,7 +11,7 @@ object CsvEncoder:
   def instance[A](func: A => List[String]): CsvEncoder[A] = func(_)
 
   inline given derived[A <: Product](using generic: Generic[CsvEncoder, A]): CsvEncoder[A] = generic.derive(
-    gen ?=> instance(a => gen.zip[[_] =>> List[String]](a)([T] => (ft: CsvEncoder[T], t: T) => ft.encode(t))
+    gen ?=> instance(a => gen.map[[_] =>> List[String]](a)([T] => (ft: CsvEncoder[T], t: T) => ft.encode(t))
       .foldRight(List.empty[String])([T] => (t: T, b: List[String]) => t.asInstanceOf[List[String]] ::: b)),
     gen ?=> instance(a => gen.ordinal(a).encode(a))
   )

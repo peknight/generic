@@ -48,7 +48,7 @@ object Generic:
 
   extension [F[_], A <: scala.Product] (generic: Product[F, A])
 
-    inline def zip[G[_]](a: A)(f: [T] => (F[T], T) => G[T]): LiftedTuple[G, generic.Repr] =
+    def map[G[_]](a: A)(f: [T] => (F[T], T) => G[T]): LiftedTuple[G, generic.Repr] =
       type H[E] = E match
         case (_, t) => G[t]
       generic.instances.zip(Tuple.fromProductTyped(a)(using generic.mirror)).map[H] { [E] => (e: E) =>
@@ -58,7 +58,7 @@ object Generic:
         f(instance, value).asInstanceOf[H[E]]
       }.asInstanceOf[LiftedTuple[G, generic.Repr]]
 
-    inline def zipWithLabels[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): LiftedTuple[G, generic.Repr] =
+    inline def mapWithLabels[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): LiftedTuple[G, generic.Repr] =
       type H[E] = E match
         case ((_, t), _) => G[t]
       generic.instances.zip(Tuple.fromProductTyped(a)(using generic.mirror)).zip(generic.labels).map[H] {
