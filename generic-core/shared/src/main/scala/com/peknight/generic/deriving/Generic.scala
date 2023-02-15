@@ -58,7 +58,7 @@ object Generic:
         f(instance, value).asInstanceOf[H[E]]
       }.asInstanceOf[LiftedTuple[G, generic.Repr]]
 
-    inline def mapWithLabels[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): LiftedTuple[G, generic.Repr] =
+    inline def mapWithLabel[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): LiftedTuple[G, generic.Repr] =
       type H[E] = E match
         case ((_, t), _) => G[t]
       generic.instances.zip(Tuple.fromProductTyped(a)(using generic.mirror)).zip(generic.labels).map[H] {
