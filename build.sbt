@@ -19,6 +19,10 @@ lazy val generic = (project in file("."))
   .aggregate(
     genericCore.jvm,
     genericCore.js,
+    genericScalaCheck.jvm,
+    genericScalaCheck.js,
+    genericMigration.jvm,
+    genericMigration.js
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -32,15 +36,30 @@ lazy val genericCore = (crossProject(JSPlatform, JVMPlatform) in file("generic-c
     name := "generic-core",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsVersion,
-    ),
-  )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-    ),
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
+      "org.scalatest" %%% "scalatest" % scalaTestVersion % Test,
+      "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test,
     ),
   )
 
+lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("generic-scalacheck"))
+  .settings(commonSettings)
+  .dependsOn(genericCore)
+  .settings(
+    name := "generic-scalacheck",
+    libraryDependencies ++= Seq(
+      "org.scalacheck" %%% "scalacheck" % scalaCheckVersion,
+      "com.peknight" %%% "cats-instances-scalacheck" % pekCatsInstancesScalaCheckVersion,
+    ),
+  )
+
+lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("generic-migration"))
+  .settings(commonSettings)
+  .dependsOn(genericCore, genericScalaCheck % Test)
+  .settings(
+    name := "generic-migration",
+  )
+
 val catsVersion = "2.9.0"
+val scalaTestVersion = "3.2.15"
+val scalaCheckVersion = "1.17.0"
+val pekCatsInstancesScalaCheckVersion = "0.1.0-SNAPSHOT"

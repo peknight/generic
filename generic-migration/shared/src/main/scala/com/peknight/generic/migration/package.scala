@@ -3,10 +3,11 @@ package com.peknight.generic
 import cats.data.Kleisli
 import cats.{Id, Monoid}
 import com.peknight.generic.deriving.Mirror
-import com.peknight.generic.deriving.tuple.{summonAsTuple, summonValuesAsTuple}
+import com.peknight.generic.deriving.tuple.summonValuesAsTuple
 import com.peknight.generic.ops.tuple.*
 
 import scala.compiletime.constValue
+
 package object migration:
 
   type MigrationT[F[_], -A, B] = Kleisli[F, A, B]
@@ -47,8 +48,7 @@ package object migration:
     }
   ))
 
-  extension [A] (a: A)
+  extension[A] (a: A)
     def migrateTo[B](using migration: Migration[A, B]): B = migration.run(a)
   end extension
-
 end migration

@@ -1,4 +1,4 @@
-package com.peknight.generic.constraint
+package com.peknight.generic.constraints
 
 /**
  * Type class witnessing that L doesn't contain elements of type U

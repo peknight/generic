@@ -1,4 +1,4 @@
-package com.peknight.generic.constraint
+package com.peknight.generic.constraints
 
 /**
  * Type class witnessing that all elements of L have distinct types
