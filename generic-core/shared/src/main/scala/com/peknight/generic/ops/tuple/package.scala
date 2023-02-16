@@ -13,14 +13,14 @@ package object tuple:
       case h *: t => F[h] *: LiftedTuple[F, t]
       case _ => EmptyTuple
 
-  type TypedTuple[T <: Tuple, A] = T match
-    case A *: t => TypedTuple[t, A]
-    case EmptyTuple => DummyImplicit
-
   type Reverse[T <: Tuple] <: Tuple =
     T match
       case h *: t => Tuple.Append[Reverse[t], h]
       case _ => EmptyTuple
+
+  type TypedTuple[T <: Tuple, A] = T match
+    case A *: t => TypedTuple[t, A]
+    case EmptyTuple => DummyImplicit
 
   @tailrec private[this] def loop[F[_], T <: Tuple](remain: T, acc: F[Tuple])(f: [A] => (A, F[Tuple]) => F[Tuple])
   : F[Tuple] =

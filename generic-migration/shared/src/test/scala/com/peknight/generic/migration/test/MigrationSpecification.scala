@@ -1,6 +1,7 @@
 package com.peknight.generic.migration.test
 
-import com.peknight.generic.migration.{migrateTo, given}
+import com.peknight.generic.migration.instances.id.given
+import com.peknight.generic.migration.syntax.id.migrateTo
 import com.peknight.generic.scalacheck.instances.arbitrary.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties

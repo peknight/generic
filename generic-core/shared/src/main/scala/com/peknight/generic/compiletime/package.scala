@@ -1,9 +1,8 @@
-package com.peknight.generic.deriving
+package com.peknight.generic
 
 import scala.compiletime.{constValue, erasedValue, summonInline}
 
-package object tuple:
-
+package object compiletime:
   //noinspection DuplicatedCode
   inline def summonAsTuple[A <: Tuple]: A = inline erasedValue[A] match
     case _: EmptyTuple => EmptyTuple.asInstanceOf[A]
@@ -13,5 +12,4 @@ package object tuple:
   inline def summonValuesAsTuple[A <: Tuple]: A = inline erasedValue[A] match
     case _: EmptyTuple => EmptyTuple.asInstanceOf[A]
     case _: (h *: t) => (constValue[h] *: summonValuesAsTuple[t]).asInstanceOf[A]
-
-end tuple
+end compiletime
