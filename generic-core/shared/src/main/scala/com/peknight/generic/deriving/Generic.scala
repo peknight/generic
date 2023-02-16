@@ -30,13 +30,11 @@ object Generic:
   def apply[F[_], A](using generic: Generic[F, A]): Generic[F, A] = generic
 
   sealed abstract class Aux[F[_], A, MirrorType0 <: Mirror.Labelled[A, Labels0, Repr0], Labels0 <: Tuple, Repr0 <: Tuple](
-    val mirror: MirrorType0, size0: () => Int, labels0: () => Labels0, instances0: () => LiftedTuple[F, Repr0]
+    val mirror: MirrorType0, val size: Int, val labels: Labels0, instances0: () => LiftedTuple[F, Repr0]
   ) extends Generic[F, A]:
     type MirrorType = MirrorType0
     type Labels = Labels0
     type Repr = Repr0
-    lazy val size: Int = size0()
-    lazy val labels: Labels = labels0()
     lazy val instances: LiftedTuple[F, Repr] = instances0()
   end Aux
 
@@ -73,11 +71,11 @@ object Generic:
 
     abstract class Aux[F[_], A, Labels0 <: Tuple, Repr0 <: Tuple](
       override val mirror: Mirror.Product.Labelled[A, Labels0, Repr0],
-      size0: () => Int,
-      labels0: () => Labels0,
+      override val size: Int,
+      override val labels: Labels0,
       instances0: () => LiftedTuple[F, Repr0]
     ) extends Generic.Aux[F, A, Mirror.Product.Labelled[A, Labels0, Repr0], Labels0, Repr0](
-      mirror, size0, labels0, instances0
+      mirror, size, labels, instances0
     ) with Product[F, A]
     object Aux:
       def apply[F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Aux[F, A, Labels, Repr])
@@ -97,11 +95,11 @@ object Generic:
 
     final class Aux[F[_], A, Labels0 <: Tuple, Repr0 <: Tuple](
       override val mirror: Mirror.Sum.Labelled[A, Labels0, Repr0],
-      size0: () => Int,
-      labels0: () => Labels0,
+      override val size: Int,
+      override val labels: Labels0,
       instances0: () => LiftedTuple[F, Repr0]
     ) extends Generic.Aux[F, A, Mirror.Sum.Labelled[A, Labels0, Repr0], Labels0, Repr0](
-      mirror, size0, labels0, instances0
+      mirror, size, labels, instances0
     ) with Sum[F, A]
 
     object Aux:
@@ -113,14 +111,14 @@ object Generic:
   inline given [F[_], A <: scala.Product, Labels <: Tuple, Repr0 <: Tuple](
     using mirror: Mirror.Product.Labelled[A, Labels, Repr0]
   ): Generic.Product.Aux[F, A, Labels, Repr0] =
-    new Generic.Product.Aux[F, A, Labels, Repr0](mirror, () => constValue[Size[Repr0]],
-      () => summonValuesAsTuple[Labels], () => summonAsTuple[LiftedTuple[F, Repr0]]):
+    new Generic.Product.Aux[F, A, Labels, Repr0](mirror, constValue[Size[Repr0]], summonValuesAsTuple[Labels],
+      () => summonAsTuple[LiftedTuple[F, Repr0]]):
       def toRepr(a: A): Repr = Tuple.fromProduct(a).asInstanceOf[Repr]
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Sum.Labelled[A, Labels, Repr]
   ): Generic.Sum.Aux[F, A, Labels, Repr] =
-    new Generic.Sum.Aux[F, A, Labels, Repr](mirror, () => constValue[Size[Repr]],
-      () => summonValuesAsTuple[Labels], () => summonAsTuple[LiftedTuple[F, Repr]])
+    new Generic.Sum.Aux[F, A, Labels, Repr](mirror, constValue[Size[Repr]], summonValuesAsTuple[Labels],
+      () => summonAsTuple[LiftedTuple[F, Repr]])
 
 end Generic
