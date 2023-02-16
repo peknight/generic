@@ -1,4 +1,4 @@
-package com.peknight.generic.migration.test
+package com.peknight.generic.migration
 
 import com.peknight.generic.migration.instances.id.given
 import com.peknight.generic.migration.syntax.id.migrateTo
