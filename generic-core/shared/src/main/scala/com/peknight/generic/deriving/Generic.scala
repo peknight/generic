@@ -1,12 +1,13 @@
 package com.peknight.generic.deriving
 
 import cats.Applicative
-import com.peknight.generic.deriving.Generic
 import com.peknight.generic.compiletime.{summonAsTuple, summonValuesAsTuple}
+import com.peknight.generic.deriving.Generic
 import com.peknight.generic.ops.tuple.LiftedTuple
 import com.peknight.generic.syntax.tuple.mapN
-import scala.compiletime.constValue
+
 import scala.Tuple.Size
+import scala.compiletime.constValue
 
 sealed trait Generic[F[_], A]:
   type Labels <: Tuple
@@ -86,6 +87,7 @@ object Generic:
   sealed trait Sum[F[_], A] extends Generic[F, A]:
     type MirrorType = Mirror.Sum.Labelled[A, Labels, Repr]
     def ordinal(a: A): Int = mirror.ordinal(a)
+    def label(a: A): String = labels.productElement(ordinal(a)).asInstanceOf[String]
     def instance(a: A): F[A] = instance(ordinal(a))
     def instance(ord: Int): F[A] = instances.productElement(ord).asInstanceOf[F[A]]
   end Sum

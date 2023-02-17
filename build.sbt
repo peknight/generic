@@ -36,8 +36,6 @@ lazy val genericCore = (crossProject(JSPlatform, JVMPlatform) in file("generic-c
     name := "generic-core",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsVersion,
-      "org.scalatest" %%% "scalatest" % scalaTestVersion % Test,
-      "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test,
     ),
   )
 
@@ -60,6 +58,5 @@ lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("gene
   )
 
 val catsVersion = "2.9.0"
-val scalaTestVersion = "3.2.15"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesScalaCheckVersion = "0.1.0-SNAPSHOT"
