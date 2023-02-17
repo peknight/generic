@@ -12,6 +12,7 @@ class JsonEncoderSpecification extends Properties("JsonEncoder"):
     case String => JsonString
     case Int => JsonNumber
     case Boolean => JsonBoolean
+    case Double => JsonNumber
   })}
 
   def toJsonObject[A <: Product : Mirror.Product](labels: Tuple, a: A): JsonObject = JsonObject(
@@ -21,6 +22,7 @@ class JsonEncoderSpecification extends Properties("JsonEncoder"):
         case s: String => (label, JsonString(s)).asInstanceOf[F[T]]
         case i: Int => (label, JsonNumber(i)).asInstanceOf[F[T]]
         case b: Boolean => (label, JsonBoolean(b)).asInstanceOf[F[T]]
+        case d: Double => (label, JsonNumber(d)).asInstanceOf[F[T]]
     }.toList.asInstanceOf[List[(String, JsonValue)]]
   )
 
