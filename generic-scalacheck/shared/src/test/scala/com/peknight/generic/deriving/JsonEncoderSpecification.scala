@@ -15,8 +15,8 @@ class JsonEncoderSpecification extends Properties("JsonEncoder"):
     case Double => JsonNumber
   })}
 
-  def toJsonObject[A <: Product : Mirror.Product](labels: Tuple, a: A): JsonObject = JsonObject(
-    labels.zip(Tuple.fromProductTyped(a)).map[F] { [T] => (t: T) =>
+  def toJsonObject(labels: Tuple, repr: Tuple): JsonObject = JsonObject(
+    labels.zip(repr).map[F] { [T] => (t: T) =>
       val (label, value) = t: @unchecked
       value match
         case s: String => (label, JsonString(s)).asInstanceOf[F[T]]
@@ -26,19 +26,13 @@ class JsonEncoderSpecification extends Properties("JsonEncoder"):
     }.toList.asInstanceOf[List[(String, JsonValue)]]
   )
 
-  val iceCreamLabels = Mirror.labels[IceCream]
-
   property("should have an instance for IceCream") = forAll { (iceCream: IceCream) =>
-    JsonEncoder[IceCream].encode(iceCream) == toJsonObject(iceCreamLabels, iceCream)
+    JsonEncoder[IceCream].encode(iceCream) == toJsonObject(Mirror.labels[IceCream], Tuple.fromProductTyped(iceCream))
   }
 
-  val rectangleLabels = Mirror.labels[Rectangle]
-  val circleLabels = Mirror.labels[Circle]
-
   property("should have an instance for Shape") = forAll { (shape: Shape) =>
-    val jsonObject = shape match
-      case r: Rectangle => toJsonObject(rectangleLabels, r)
-      case c: Circle => toJsonObject(circleLabels, c)
-    JsonEncoder[Shape].encode(shape) == JsonObject(List((Mirror.Sum.label[Shape](shape), jsonObject)))
+    val inst = Generic.Sum.Instances[Generic.Product, Shape].instance(shape)
+    val jsonObject = toJsonObject(inst.labels, inst.to(shape))
+    JsonEncoder[Shape].encode(shape) == JsonObject(List((Generic.Sum[Shape].label(shape), jsonObject)))
   }
 end JsonEncoderSpecification

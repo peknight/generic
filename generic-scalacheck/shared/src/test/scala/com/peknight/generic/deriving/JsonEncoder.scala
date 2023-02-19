@@ -39,19 +39,17 @@ object JsonEncoder:
     def encode(value: EmptyTuple): JsonObject = JsonObject(Nil)
   end given
 
-  given productInstance[A] (using generic: => Generic.Product[JsonEncoder, A]): JsonObjectEncoder[A] with
-    def encode(value: A): JsonObject = JsonObject(generic.mapWithLabel[[_] =>> (String, JsonValue)](value)(
-      [T] => (enc: JsonEncoder[T], t: T, label: String) => (label, enc.encode(t))
-    ).foldRight(List.empty[(String, JsonValue)])([T] => (t: T, acc: List[(String, JsonValue)]) =>
-      t.asInstanceOf[(String, JsonValue)] :: acc)
-    )
-  end productInstance
-
-  given sumInstance[A] (using generic: => Generic.Sum[JsonEncoder, A]): JsonObjectEncoder[A] with
-    def encode(value: A): JsonObject = JsonObject(List {
-      val ordinal = generic.ordinal(value)
-      generic.labels.productElement(ordinal).asInstanceOf[String] -> generic.instance(ordinal).encode(value)
-    })
-  end sumInstance
+  inline given [A](using instances: => Generic.Instances[JsonEncoder, A]): JsonEncoder[A] = instances.derive(
+    inst ?=> JsonObjectEncoder.createObjectEncoder(
+      (value: A) => JsonObject(inst.mapWithLabel[[_] =>> (String, JsonValue)](value)(
+        [T] => (enc: JsonEncoder[T], t: T, label: String) => (label, enc.encode(t))
+      ).foldRight(List.empty[(String, JsonValue)])(
+        [T] => (t: T, acc: List[(String, JsonValue)]) => t.asInstanceOf[(String, JsonValue)] :: acc
+      )
+    )),
+    inst ?=> JsonObjectEncoder.createObjectEncoder((value: A) => JsonObject(List(inst.withLabel(value)(
+      (encoder, label) => label -> encoder.encode(value)
+    ))))
+  )
 
 end JsonEncoder
