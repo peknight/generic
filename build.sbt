@@ -59,6 +59,9 @@ lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("gene
   .dependsOn(genericCore, genericScalaCheck % Test)
   .settings(
     name := "generic-migration",
+    scalacOptions --= Seq(
+      "-Xfatal-warnings",
+    ),
   )
 
 val catsVersion = "2.9.0"
