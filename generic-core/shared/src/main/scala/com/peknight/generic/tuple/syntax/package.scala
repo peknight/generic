@@ -1,7 +1,7 @@
 package com.peknight.generic.tuple
 
 import cats.{Applicative, Eval, Id}
-import com.peknight.generic.tuple.{LiftedTuple, Reverse}
+import com.peknight.generic.tuple.{Lifted, Reverse}
 
 import scala.annotation.tailrec
 package object syntax:
@@ -20,10 +20,10 @@ package object syntax:
       loop[Id, Reverse[T]] (tuple.reverse, EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => f(a) ++ acc)
         .asInstanceOf[Tuple.FlatMap[T, F]]
 
-    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[LiftedTuple[F, T]] =
+    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[Lifted[F, T]] =
       loop[G, Reverse[T]](tuple.reverse, Applicative[G].pure(EmptyTuple))(
         [A] => (a: A, acc: G[Tuple]) => Applicative[G].map2(f(a), acc)(_ *: _)
-      ).asInstanceOf[G[LiftedTuple[F, T]]]
+      ).asInstanceOf[G[Lifted[F, T]]]
 
     @tailrec def foldLeft[B](b: B)(f: [A] => (B, A) => B): B = tuple match
       case _: EmptyTuple => b
@@ -61,7 +61,7 @@ package object syntax:
 
   end extension
 
-  extension[G[_] : Applicative, T <: Tuple] (tuple: LiftedTuple[G, T])
+  extension[G[_] : Applicative, T <: Tuple] (tuple: Lifted[G, T])
     def sequence: G[T] = tuple.traverse[Id, G]([A] => (a: A) => a.asInstanceOf).asInstanceOf[G[T]]
 
     def mapN[U](f: T => U): G[U] = Applicative[G].map(tuple.sequence)(f)
