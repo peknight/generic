@@ -122,14 +122,12 @@ object Generic:
           val (instance, value) = e.asInstanceOf[(F[U], U)]
           f(b, instance, value)
         }
-
       def foldLeftWithLabel[B](a: A)(b: B)(f: [T] => (B, F[T], T, String) => B): B =
         instances.zip(to(a)).zip(labels).foldLeft[B](b) { [E] => (b: B, e: E) =>
           type U = E match { case ((_, t), _) => t }
           val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
           f(b, instance, value, label)
         }
-
       def to(a: A): Repr = generic.to(a)
       def from(repr: Repr): A = generic.from(repr)
     end Instances
