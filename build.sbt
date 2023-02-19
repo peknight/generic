@@ -47,6 +47,7 @@ lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("gen
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion,
       "com.peknight" %%% "cats-instances-scalacheck" % pekCatsInstancesScalaCheckVersion,
+      "org.typelevel" %%% "cats-laws" % catsVersion % Test,
     ),
     scalacOptions --= Seq(
       "-Xfatal-warnings",

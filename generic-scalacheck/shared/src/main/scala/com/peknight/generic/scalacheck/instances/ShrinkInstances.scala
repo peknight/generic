@@ -22,10 +22,9 @@ trait ShrinkInstances:
         case (_, streamTuple) if streamTuple.forall { [T] => (t: T) => t.asInstanceOf[Stream[Any]].isEmpty } => None
         case (repr, streamTuple) =>
           val (nextRepr, nextS) = repr.zip(streamTuple).map[Id] { [T] => (t: T) =>
-            type E = T match { case (E, _) => E }
             t match
-              case (_, s: Stream[E]) if s.isEmpty => t
-              case (_, s: Stream[E]) => (s.head, s.tail).asInstanceOf[Id[T]]
+              case (_, s: Stream[_]) if s.isEmpty => t
+              case (_, s: Stream[_]) => (s.head, s.tail).asInstanceOf[Id[T]]
           }.asInstanceOf[Zip[Repr, Lifted[Stream, Repr]]].unzip
           Some((nextRepr, (nextRepr, nextS)))
       }.map(inst.from)
