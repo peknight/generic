@@ -1,7 +1,7 @@
 package com.peknight.generic.deriving
 
 import com.peknight.generic.deriving.Tree
-import com.peknight.generic.scalacheck.instances.arbitrary.given
+import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.{Arbitrary, Gen, Properties}
 

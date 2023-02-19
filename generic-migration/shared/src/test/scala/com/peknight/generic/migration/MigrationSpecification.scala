@@ -2,7 +2,7 @@ package com.peknight.generic.migration
 
 import com.peknight.generic.migration.instances.id.given
 import com.peknight.generic.migration.syntax.id.migrateTo
-import com.peknight.generic.scalacheck.instances.arbitrary.given
+import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 

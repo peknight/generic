@@ -19,7 +19,7 @@ trait ShrinkInstances:
         [T] => (instance: Shrink[T], t: T) => instance.shrink(t)
       )
       Stream.unfold[Repr, (Repr, Lifted[Stream, Repr])]((inst.to(a), streamTuple)) {
-        case (_, streamTuple) if streamTuple.forall { [S] => (s: S) => s.asInstanceOf[Stream[Any]].isEmpty } => None
+        case (_, streamTuple) if streamTuple.forall { [T] => (t: T) => t.asInstanceOf[Stream[Any]].isEmpty } => None
         case (repr, streamTuple) =>
           val (nextRepr, nextS) = repr.zip(streamTuple).map[Id] { [T] => (t: T) =>
             type E = T match { case (E, _) => E }
