@@ -2,8 +2,8 @@ package com.peknight.generic.scalacheck.instances
 
 import cats.Id
 import com.peknight.generic.deriving.Generic
-import com.peknight.generic.ops.tuple.{Head, LiftedTuple, SecondElem}
-import com.peknight.generic.syntax.tuple.forall
+import com.peknight.generic.tuple.syntax.forall
+import com.peknight.generic.tuple.{Head, LiftedTuple, Second}
 import org.scalacheck.Shrink
 
 
@@ -28,8 +28,8 @@ trait ShrinkInstances:
           val nextA = inst.from(next.map[Head] { [T] => (t: T) => t match
             case (e, _) => e.asInstanceOf[Head[T]]
           }.asInstanceOf[inst.Repr])
-          val nextS = next.map[SecondElem] { [T] => (t: T) => t match
-            case (_, s) => s.asInstanceOf[SecondElem[T]]
+          val nextS = next.map[Second] { [T] => (t: T) => t match
+            case (_, s) => s.asInstanceOf[Second[T]]
           }.asInstanceOf[LiftedTuple[Stream, inst.Repr]]
           Some((nextA, (nextA, nextS)))
       }

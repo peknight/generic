@@ -1,7 +1,7 @@
 package com.peknight.generic.deriving
 
 import com.peknight.generic.deriving.JsonValue.*
-import com.peknight.generic.syntax.tuple.foldRight
+import com.peknight.generic.tuple.syntax.foldRight
 
 trait JsonEncoder[A]:
   def encode(value: A): JsonValue

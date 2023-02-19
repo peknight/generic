@@ -1,4 +1,4 @@
-package com.peknight.generic.ops.tuple
+package com.peknight.generic.tuple.ops
 
 import com.peknight.generic.constraints.NotContainsConstraint
 import com.peknight.generic.dependent.DepFn1

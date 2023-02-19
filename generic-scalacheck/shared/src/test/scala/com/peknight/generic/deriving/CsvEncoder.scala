@@ -1,6 +1,6 @@
 package com.peknight.generic.deriving
 
-import com.peknight.generic.syntax.tuple.foldRight
+import com.peknight.generic.tuple.syntax.foldRight
 
 import scala.deriving.Mirror as SMirror
 

@@ -1,4 +1,4 @@
-package com.peknight.generic.ops.tuple
+package com.peknight.generic.tuple.ops
 
 private[generic] trait LowPriorityPrepend extends LowestPriorityPrepend:
   given [P <: Tuple, S <: EmptyTuple]: Aux[P, S, P] =

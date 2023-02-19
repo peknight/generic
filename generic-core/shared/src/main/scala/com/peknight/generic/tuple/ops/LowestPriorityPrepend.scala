@@ -1,4 +1,4 @@
-package com.peknight.generic.ops.tuple
+package com.peknight.generic.tuple.ops
 
 private[generic] trait LowestPriorityPrepend:
   type Aux[P <: Tuple, S <: Tuple, Out0 <: Tuple] = Prepend[P, S] {type Out = Out0}

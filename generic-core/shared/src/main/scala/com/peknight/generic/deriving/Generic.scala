@@ -2,8 +2,8 @@ package com.peknight.generic.deriving
 
 import cats.Applicative
 import com.peknight.generic.compiletime.{summonAsTuple, summonValuesAsTuple}
-import com.peknight.generic.ops.tuple.LiftedTuple
-import com.peknight.generic.syntax.tuple.mapN
+import com.peknight.generic.tuple.LiftedTuple
+import com.peknight.generic.tuple.syntax.mapN
 
 import scala.Tuple.Size
 import scala.compiletime.constValue

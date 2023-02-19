@@ -1,4 +1,4 @@
-package com.peknight.generic.ops.tuple
+package com.peknight.generic.tuple.ops
 
 /**
  * Type class supporting permuting this `HList` into the same order as another `HList` with

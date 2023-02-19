@@ -5,7 +5,8 @@ import cats.{Id, Monoid}
 import com.peknight.generic.compiletime.summonValuesAsTuple
 import com.peknight.generic.deriving.Mirror
 import com.peknight.generic.migration.Migration
-import com.peknight.generic.ops.tuple.*
+import com.peknight.generic.tuple.*
+import com.peknight.generic.tuple.ops.*
 
 import scala.compiletime.constValue
 
@@ -39,9 +40,9 @@ trait IdInstances:
     prepend: Prepend.Aux[Added, Common, Unaligned],
     align: Align[Unaligned, Tuple.Zip[BLabels, BRepr]]
   ): Migration[A, B] = Kleisli((a: A) => bMirror.fromProduct(
-    align(prepend(monoid.empty, inter(summonValuesAsTuple[ALabels].zip(Tuple.fromProductTyped(a))))).map[SecondElem] {
+    align(prepend(monoid.empty, inter(summonValuesAsTuple[ALabels].zip(Tuple.fromProductTyped(a))))).map[Second] {
       [T] => (t: T) => t match
-        case (_, value) => value.asInstanceOf[SecondElem[T]]
+        case (_, value) => value.asInstanceOf[Second[T]]
     }
   ))
 end IdInstances

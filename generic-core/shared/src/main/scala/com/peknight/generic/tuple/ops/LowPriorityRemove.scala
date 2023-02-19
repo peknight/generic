@@ -1,4 +1,4 @@
-package com.peknight.generic.ops.tuple
+package com.peknight.generic.tuple.ops
 
 private[generic] trait LowPriorityRemove:
   type Aux[L <: Tuple, E, Out0] = Remove[L, E] { type Out = Out0 }
