@@ -3,6 +3,7 @@ package com.peknight.generic.tuple
 import cats.{Applicative, Eval, Id}
 import com.peknight.generic.tuple.{Lifted, Reverse}
 
+import scala.Tuple.Zip
 import scala.annotation.tailrec
 package object syntax:
   @tailrec private[this] def loop[F[_], T <: Tuple](remain: T, acc: F[Tuple])(f: [A] => (A, F[Tuple]) => F[Tuple])
@@ -67,4 +68,10 @@ package object syntax:
     def mapN[U](f: T => U): G[U] = Applicative[G].map(tuple.sequence)(f)
   end extension
 
+  extension[T <: Tuple, U <: Tuple] (tuple: Zip[T, U])
+    def unzip: (T, U) = tuple.foldRight[(Tuple, Tuple)]((EmptyTuple, EmptyTuple)) { [A] => (a: A, b: (Tuple, Tuple)) =>
+      val ((th, uh), (tt, ut)) = (a, b): @unchecked
+      (th *: tt, uh *: ut)
+    }.asInstanceOf[(T, U)]
+  end extension
 end syntax
