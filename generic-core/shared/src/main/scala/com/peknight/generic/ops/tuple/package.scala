@@ -70,6 +70,12 @@ package object tuple:
   def mapN[G[_] : Applicative, T <: Tuple, U](fga: LiftedTuple[G, T])(f: T => U): G[U] =
     Applicative[G].map(sequence[G, T](fga))(f)
 
+  @tailrec def foreach[F[_]](tuple: Tuple)(f: [A] => A => F[A]): Unit = tuple match
+    case h *: t =>
+      f(h)
+      foreach(t)(f)
+    case _: EmptyTuple => ()
+
   def forall(tuple: Tuple)(f: [A] => A => Boolean): Boolean =
     @tailrec def loop(t: Tuple, flag: Boolean): Boolean = (t, flag) match
       case (_, false) => false
@@ -77,4 +83,10 @@ package object tuple:
       case (h *: t, _) => loop(t, f(h))
     loop(tuple, true)
 
+  def exists(tuple: Tuple)(f: [A] => A => Boolean): Boolean =
+    @tailrec def loop(t: Tuple, flag: Boolean): Boolean = (t, flag) match
+      case (_, true) => true
+      case (_: EmptyTuple, _) => false
+      case (h *: t, _) => loop(t, f(h))
+    loop(tuple, false)
 end tuple
