@@ -3,7 +3,7 @@ package com.peknight.generic.deriving
 import cats.Applicative
 import com.peknight.generic.compiletime.{summonAsTuple, summonValuesAsTuple}
 import com.peknight.generic.tuple.Lifted
-import com.peknight.generic.tuple.syntax.mapN
+import com.peknight.generic.tuple.syntax.{foldLeft, mapN}
 
 import scala.Tuple.Size
 import scala.compiletime.constValue
@@ -99,23 +99,36 @@ object Generic:
     sealed trait Instances[F[_], A] extends Generic.Instances[F, A]:
       type MirrorType = Mirror.Product.Labelled[A, Labels, Repr]
       type GenericType = Generic.Product.Aux[A, Labels, Repr]
-      def fromInstances(using Applicative[F]): F[A] = instances.mapN(generic.from)
+      def fromInstances(using Applicative[F]): F[A] = instances.mapN(from)
       def map[G[_]](a: A)(f: [T] => (F[T], T) => G[T]): Lifted[G, Repr] =
-        type H[E] = E match {case (_, t) => G[t]}
-        instances.zip(generic.to(a)).map[H] {
+        type H[E] = E match { case (_, t) => G[t] }
+        instances.zip(to(a)).map[H] {
           [E] => (e: E) =>
-            type U = E match {case (_, t) => t}
+            type U = E match { case (_, t) => t }
             val (instance, value) = e.asInstanceOf[(F[U], U)]
             f(instance, value).asInstanceOf[H[E]]
         }.asInstanceOf[Lifted[G, Repr]]
       def mapWithLabel[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): Lifted[G, Repr] =
-        type H[E] = E match {case ((_, t), _) => G[t]}
-        instances.zip(generic.to(a)).zip(generic.labels).map[H] {
+        type H[E] = E match { case ((_, t), _) => G[t] }
+        instances.zip(to(a)).zip(labels).map[H] {
           [E] => (e: E) =>
-            type U = E match {case ((_, t), _) => t}
+            type U = E match { case ((_, t), _) => t }
             val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
             f(instance, value, label).asInstanceOf[H[E]]
         }.asInstanceOf[Lifted[G, Repr]]
+      def foldLeft[B](a: A)(b: B)(f: [T] => (B, F[T], T) => B): B =
+        instances.zip(to(a)).foldLeft[B](b) { [E] => (b: B, e: E) =>
+          type U = E match { case (_, t) => t }
+          val (instance, value) = e.asInstanceOf[(F[U], U)]
+          f(b, instance, value)
+        }
+
+      def foldLeftWithLabel[B](a: A)(b: B)(f: [T] => (B, F[T], T, String) => B): B =
+        instances.zip(to(a)).zip(labels).foldLeft[B](b) { [E] => (b: B, e: E) =>
+          type U = E match { case ((_, t), _) => t }
+          val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
+          f(b, instance, value, label)
+        }
 
       def to(a: A): Repr = generic.to(a)
       def from(repr: Repr): A = generic.from(repr)
@@ -162,13 +175,13 @@ object Generic:
       type MirrorType = Mirror.Sum.Labelled[A, Labels, Repr]
       type GenericType = Generic.Sum.Aux[A, Labels, Repr]
       def instance(ord: Int): F[A] = instances.productElement(ord).asInstanceOf[F[A]]
-      def instance(a: A): F[A] = instance(generic.ordinal(a))
+      def instance(a: A): F[A] = instance(ordinal(a))
 
       def withInstance[B](a: A)(f: F[A] => B): B = f(instance(a))
 
       def withLabel[B](a: A)(f: (F[A], String) => B): B =
-        val ord = generic.ordinal(a)
-        f(instance(ord), generic.label(ord))
+        val ord = ordinal(a)
+        f(instance(ord), label(ord))
 
       def ordinal(a: A): Int = generic.ordinal(a)
       def label(ord: Int): String = generic.label(ord)
