@@ -2,7 +2,7 @@ package com.peknight.generic.deriving
 
 import com.peknight.generic.deriving.JsonValue.*
 import com.peknight.generic.deriving.Shape.*
-import com.peknight.generic.scalacheck.instances.arbitrary.given
+import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 

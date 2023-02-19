@@ -12,6 +12,7 @@ trait TupleSyntax:
     def foldLeft[B](b: B)(f: [A] => (B, A) => B): B = ops.tuple.foldLeft(tuple, b)(f)
     def foldRight[B](lb: Eval[B])(f: [A] => (A, Eval[B]) => Eval[B]): Eval[B] = ops.tuple.foldRight(tuple, lb)(f)
     def foldRight[B](b: B)(f: [A] => (A, B) => B): B = ops.tuple.foldRight(tuple, b)(f)
+    def forall(f: [A] => A => Boolean): Boolean = ops.tuple.forall(tuple)(f)
   end extension
 
   extension[G[_] : Applicative, T <: Tuple] (tuple: LiftedTuple[G, T])
