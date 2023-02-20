@@ -1,7 +1,8 @@
 package com.peknight.generic.deriving
 
-import cats.Monad
-import org.scalacheck.Gen
+import cats.laws.discipline.MonadTests
+import cats.{Eq, Monad}
+import org.scalacheck.{Arbitrary, Gen, Properties}
 
 import scala.annotation.tailrec
 
@@ -32,17 +33,6 @@ object Tree:
       }
     }.head
 
-  def gen[T](genT: Gen[T], maxSize: Int): Gen[Tree[T]] =
-    require(maxSize > 0)
-    Gen.choose(1, maxSize).flatMap(size => Gen.tailRecM[(List[Int], List[Option[T]]), Tree[T]]((List(size), Nil)) {
-      case (Nil, acc) => Gen.const(Right(from(acc)))
-      case (1 :: restSize, acc) => genT.map(elem => Left((restSize, Some(elem) :: acc)))
-      case (sizeHead :: sizeTail, acc) =>  Gen.choose(1, sizeHead - 1).map(leftSize => Left((
-        leftSize :: sizeHead - leftSize :: sizeTail,
-        None :: acc
-      )))
-    })
-
   given Monad[Tree] with
     def pure[A](x: A): Tree[A] = Leaf(x)
     def flatMap[A, B](fa: Tree[A])(f: A => Tree[B]): Tree[B] = from(fa.to.flatMap {
@@ -62,5 +52,25 @@ object Tree:
         }
       loop(List(f(a)), Nil).head
   end given
+
+  def treeMonadLaws: Properties = MonadTests[Tree].monad[Int, String, Boolean].all
+
+  given [A : Eq]: Eq[Tree[A]] with
+    def eqv(x: Tree[A], y: Tree[A]): Boolean = Eq[List[Option[A]]].eqv(x.to, y.to)
+  end given
+
+  def gen[T](genT: Gen[T], maxSize: Int): Gen[Tree[T]] =
+    require(maxSize > 0)
+    Gen.choose(1, maxSize).flatMap(size => Gen.tailRecM[(List[Int], List[Option[T]]), Tree[T]]((List(size), Nil)) {
+      case (Nil, acc) => Gen.const(Right(from(acc)))
+      case (1 :: restSize, acc) => genT.map(elem => Left((restSize, Some(elem) :: acc)))
+      case (sizeHead :: sizeTail, acc) => Gen.choose(1, sizeHead - 1).map(leftSize => Left((
+        leftSize :: sizeHead - leftSize :: sizeTail,
+        None :: acc
+      )))
+    })
+
+  given [A: Arbitrary]: Arbitrary[Tree[A]] = Arbitrary(gen(Arbitrary.arbitrary[A], 16))
+
 end Tree
 

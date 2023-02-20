@@ -1,9 +1,9 @@
 package com.peknight.generic.deriving
 
-import com.peknight.generic.deriving.Tree
+import com.peknight.generic.deriving.Tree.given
 import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
-import org.scalacheck.{Arbitrary, Gen, Properties}
+import org.scalacheck.Properties
 
 class CsvEncoderSpecification extends Properties("CsvEncoder"):
 
@@ -15,9 +15,8 @@ class CsvEncoderSpecification extends Properties("CsvEncoder"):
     )
   }
 
-  given [A: Arbitrary]: Arbitrary[Tree[A]] = Arbitrary(Tree.gen(Arbitrary.arbitrary[A], 100))
-
   property("should have an instance for Tree") = forAll { (tree: Tree[Int]) =>
     CsvEncoder[Tree[Int]].encode(tree) == tree.toList.map(i => s"$i")
   }
+
 end CsvEncoderSpecification
