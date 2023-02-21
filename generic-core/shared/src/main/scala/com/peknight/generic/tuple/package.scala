@@ -7,6 +7,9 @@ package object tuple:
     T match
       case h *: t => F[h] *: Lifted[F, t]
       case _ => EmptyTuple
+  type NonEmptyLifted[F[_], T <: NonEmptyTuple] <: NonEmptyTuple =
+    T match
+      case h *: t => F[h] *: Lifted[F, t]
   type Reverse[T <: Tuple] <: Tuple =
     T match
       case h *: t => Tuple.Append[Reverse[t], h]

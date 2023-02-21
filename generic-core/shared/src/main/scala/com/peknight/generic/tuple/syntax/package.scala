@@ -1,77 +1,47 @@
 package com.peknight.generic.tuple
 
-import cats.{Applicative, Eval, Id}
+import cats.{Applicative, Eval, Functor, Semigroupal}
+import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
 import com.peknight.generic.tuple.{Lifted, Reverse}
 
 import scala.Tuple.Zip
-import scala.annotation.tailrec
+
 package object syntax:
-  @tailrec private[this] def loop[F[_], T <: Tuple](remain: T, acc: F[Tuple])(f: [A] => (A, F[Tuple]) => F[Tuple])
-  : F[Tuple] =
-    remain match
-      case _: EmptyTuple => acc
-      case h *: t => loop(t, f(h, acc))(f)
-  end loop
+  extension [T <: Tuple] (tuple: T)
+    def reverse: Reverse[T] = TupleOps.reverse(tuple)
 
-  extension[T <: Tuple] (tuple: T)
-    def reverse: Reverse[T] =
-      loop[Id, T](tuple, EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => a *: acc).asInstanceOf[Reverse[T]]
+    def flatMap[F[_] <: Tuple](f: [A] => A => F[A]): Tuple.FlatMap[T, F] = TupleOps.flatMap[T, F](tuple)(f)
 
-    def flatMap[F[_] <: Tuple](f: [A] => A => F[A]): Tuple.FlatMap[T, F] =
-      loop[Id, Reverse[T]] (tuple.reverse, EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => f(a) ++ acc)
-        .asInstanceOf[Tuple.FlatMap[T, F]]
+    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[Lifted[F, T]] = 
+      TupleOps.traverse[T, F, G](tuple)(f)
 
-    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[Lifted[F, T]] =
-      loop[G, Reverse[T]](tuple.reverse, Applicative[G].pure(EmptyTuple))(
-        [A] => (a: A, acc: G[Tuple]) => Applicative[G].map2(f(a), acc)(_ *: _)
-      ).asInstanceOf[G[Lifted[F, T]]]
+    def foldLeft[B](b: B)(f: [A] => (B, A) => B): B = TupleOps.foldLeft[B](tuple, b)(f)
 
-    @tailrec def foldLeft[B](b: B)(f: [A] => (B, A) => B): B = tuple match
-      case _: EmptyTuple => b
-      case h *: t => t.foldLeft(f(b, h))(f)
+    def foldRight[B](lb: Eval[B])(f: [A] => (A, Eval[B]) => Eval[B]): Eval[B] = TupleOps.foldRight[B](tuple, lb)(f)
 
-    def foldRight[B](lb: Eval[B])(f: [A] => (A, Eval[B]) => Eval[B]): Eval[B] =
-      def loop[U <: Tuple](elems: U): Eval[B] =
-        elems match
-          case _: EmptyTuple => lb
-          case h *: t => f(h, Eval.defer(loop(t)))
-      end loop
-      Eval.defer(loop(tuple))
+    def foldRight[B](b: B)(f: [A] => (A, B) => B): B = TupleOps.foldRight[B](tuple, b)(f)
 
-    def foldRight[B](b: B)(f: [A] => (A, B) => B): B = tuple.reverse.foldLeft(b)([A] => (b: B, a: A) => f(a, b))
+    def foreach[F[_]](f: [A] => A => F[A]): Unit = TupleOps.foreach[F](tuple)(f)
 
-    @tailrec def foreach[F[_]](f: [A] => A => F[A]): Unit = tuple match
-      case h *: t =>
-        f(h)
-        t.foreach(f)
-      case _: EmptyTuple => ()
+    def forall(f: [A] => A => Boolean): Boolean = TupleOps.forall(tuple)(f)
 
-    def forall(f: [A] => A => Boolean): Boolean =
-      @tailrec def loop(t: Tuple, flag: Boolean): Boolean = (t, flag) match
-        case (_, false) => false
-        case (_: EmptyTuple, _) => true
-        case (h *: t, _) => loop(t, f(h))
-      loop(tuple, true)
-
-    def exists(f: [A] => A => Boolean): Boolean =
-      @tailrec def loop(t: Tuple, flag: Boolean): Boolean = (t, flag) match
-        case (_, true) => true
-        case (_: EmptyTuple, _) => false
-        case (h *: t, _) => loop(t, f(h))
-      loop(tuple, false)
+    def exists(f: [A] => A => Boolean): Boolean = TupleOps.exists(tuple)(f)
 
   end extension
 
-  extension[G[_] : Applicative, T <: Tuple] (tuple: Lifted[G, T])
-    def sequence: G[T] = tuple.traverse[Id, G]([A] => (a: A) => a.asInstanceOf).asInstanceOf[G[T]]
+  extension [T <: Tuple, G[_] : Applicative] (tuple: Lifted[G, T])
+    def sequence: G[T] = TupleOps.sequence[T, G](tuple)
 
-    def mapN[U](f: T => U): G[U] = Applicative[G].map(tuple.sequence)(f)
+    def mapN[Z](f: T => Z): G[Z] = TupleOps.mapN[T, G, Z](tuple)(f)
   end extension
 
-  extension[T <: Tuple, U <: Tuple] (tuple: Zip[T, U])
-    def unzip: (T, U) = tuple.foldRight[(Tuple, Tuple)]((EmptyTuple, EmptyTuple)) { [A] => (a: A, b: (Tuple, Tuple)) =>
-      val ((th, uh), (tt, ut)) = (a, b): @unchecked
-      (th *: tt, uh *: ut)
-    }.asInstanceOf[(T, U)]
+  extension [T <: Tuple, U <: Tuple] (tuple: Zip[T, U])
+    def unzip: (T, U) = TupleOps.unzip[T, U](tuple)
   end extension
+
+  object nonEmptyTuple:
+    extension [T <: NonEmptyTuple, G[_] : Functor : Semigroupal] (tuple: NonEmptyLifted[G, T])
+      def mapN[Z](f: T => Z): G[Z] = NonEmptyTupleOps.mapN[T, G, Z](tuple)(f)
+    end extension
+  end nonEmptyTuple
 end syntax
