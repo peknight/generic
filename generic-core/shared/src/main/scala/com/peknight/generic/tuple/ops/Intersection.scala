@@ -17,7 +17,7 @@ private[generic] trait Intersection[L <: Tuple, M <: Tuple] extends DepFn1[L] wi
   type Out <: Tuple
 end Intersection
 
-private[generic] object Intersection extends LowPriorityIntersection:
+private[generic] object Intersection extends Intersection2:
   def apply[L <: Tuple, M <: Tuple](using intersection: Intersection[L, M]): Aux[L, M, intersection.Out] =
     intersection
 

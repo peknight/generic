@@ -12,7 +12,7 @@ private[generic] trait Remove[L <: Tuple, E] extends DepFn1[L] with Serializable
   def reinsert(out: Out): L
 end Remove
 
-private[generic] object Remove extends LowPriorityRemove:
+private[generic] object Remove extends Remove2:
   def apply[L <: Tuple, E](using remove: Remove[L, E]): Aux[L, E, remove.Out] = remove
 
   given [H, T <: Tuple]: Aux[H *: T, H, (H, T)] =

@@ -15,7 +15,7 @@ private[generic] trait Union[L <: Tuple, M <: Tuple] extends DepFn2[L, M] with S
   type Out <: Tuple
 end Union
 
-private[generic] object Union extends LowPriorityUnion:
+private[generic] object Union extends Union2:
   def apply[L <: Tuple, M <: Tuple](using union: Union[L, M]): Aux[L, M, union.Out] = union
 
   // let ∅ ∪ M = M

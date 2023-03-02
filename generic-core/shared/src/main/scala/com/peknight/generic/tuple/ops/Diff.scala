@@ -15,7 +15,7 @@ private[generic] trait Diff[L <: Tuple, M <: Tuple] extends DepFn1[L] with Seria
   type Out <: Tuple
 end Diff
 
-private[generic] object Diff extends LowPriorityDiff:
+private[generic] object Diff extends Diff2:
   def apply[L <: Tuple, M <: Tuple](using diff: Diff[L, M]): Aux[L, M, diff.Out] = diff
 
   given [L <: Tuple]: Aux[L, EmptyTuple, L] =

@@ -11,7 +11,7 @@ private[generic] trait Prepend[P <: Tuple, S <: Tuple] extends DepFn2[P, S] with
   type Out <: Tuple
 end Prepend
 
-private[generic] object Prepend extends LowPriorityPrepend:
+private[generic] object Prepend extends Prepend2:
   def apply[P <: Tuple, S <: Tuple](using prepend: Prepend[P, S]): Aux[P, S, prepend.Out] = prepend
 
   given [P <: EmptyTuple, S <: Tuple]: Aux[P, S, S] =

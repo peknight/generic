@@ -1,6 +1,6 @@
 package com.peknight.generic.tuple.ops
 
-private[generic] trait LowPriorityRemove:
+private[generic] trait Remove2:
   type Aux[L <: Tuple, E, Out0] = Remove[L, E] { type Out = Out0 }
 
   given [H, T <: Tuple, E, OutT <: Tuple](using r: Aux[T, E, (E, OutT)]): Aux[H *: T, E, (E, H *: OutT)] =
@@ -13,4 +13,4 @@ private[generic] trait LowPriorityRemove:
 
       def reinsert(out: Out): H *: T = out._2.head *: r.reinsert((out._1, out._2.tail))
   end given
-end LowPriorityRemove
+end Remove2
