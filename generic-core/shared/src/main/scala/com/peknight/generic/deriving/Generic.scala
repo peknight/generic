@@ -1,12 +1,11 @@
 package com.peknight.generic.deriving
 
 import cats.Applicative
-import com.peknight.generic.compiletime.{summonAsTuple, summonValuesAsTuple}
 import com.peknight.generic.tuple.Lifted
 import com.peknight.generic.tuple.syntax.{foldLeft, mapN}
 
 import scala.Tuple.Size
-import scala.compiletime.constValue
+import scala.compiletime.{constValue, constValueTuple, summonAll}
 
 sealed trait Generic[A]:
   type Labels <: Tuple
@@ -204,19 +203,19 @@ object Generic:
   inline given [A <: scala.Product, Labels <: Tuple, Repr0 <: Tuple](
     using mirror: Mirror.Product.Labelled[A, Labels, Repr0]
   ): Generic.Product.Aux[A, Labels, Repr0] =
-    new Generic.Product.Aux[A, Labels, Repr0](mirror, constValue[Size[Repr0]], summonValuesAsTuple[Labels]):
+    new Generic.Product.Aux[A, Labels, Repr0](mirror, constValue[Size[Repr0]], constValueTuple[Labels]):
       def to(a: A): Repr = Tuple.fromProduct(a).asInstanceOf[Repr]
 
   inline given [A, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Sum.Labelled[A, Labels, Repr]
   ): Generic.Sum.Aux[A, Labels, Repr] =
-    new Generic.Sum.Aux[A, Labels, Repr](mirror, constValue[Size[Repr]], summonValuesAsTuple[Labels])
+    new Generic.Sum.Aux[A, Labels, Repr](mirror, constValue[Size[Repr]], constValueTuple[Labels])
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Product.Aux[A, Labels, Repr])
   : Generic.Product.Instances.Aux[F, A, Labels, Repr] =
-    new Generic.Product.Instances.Aux[F, A, Labels, Repr](generic, () => summonAsTuple[Lifted[F, Repr]])
+    new Generic.Product.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Lifted[F, Repr]])
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Sum.Aux[A, Labels, Repr])
   : Generic.Sum.Instances.Aux[F, A, Labels, Repr] =
-    new Generic.Sum.Instances.Aux[F, A, Labels, Repr](generic, () => summonAsTuple[Lifted[F, Repr]])
+    new Generic.Sum.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Lifted[F, Repr]])
 end Generic

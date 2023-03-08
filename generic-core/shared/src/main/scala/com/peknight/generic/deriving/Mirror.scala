@@ -1,14 +1,13 @@
 package com.peknight.generic.deriving
 
-import com.peknight.generic.compiletime.summonValuesAsTuple
-
+import scala.compiletime.constValueTuple
 import scala.deriving.Mirror as SMirror
 
 object Mirror:
 
   def apply[A](using mirror: Mirror[A]): Mirror[A] = mirror
   inline def labels[A](using mirror: Mirror[A]): mirror.MirroredElemLabels =
-    summonValuesAsTuple[mirror.MirroredElemLabels]
+    constValueTuple[mirror.MirroredElemLabels]
 
   type Aux[A, Repr <: Tuple] = Mirror[A] { type MirroredElemTypes = Repr }
 
@@ -62,7 +61,7 @@ object Mirror:
     def ordinal[A](a: A)(using mirror: Mirror.Sum[A]): Int = mirror.ordinal(a)
 
     inline def label[A](a: A)(using mirror: Mirror.Sum[A]): String =
-      summonValuesAsTuple[mirror.MirroredElemLabels].productElement(mirror.ordinal(a)).asInstanceOf[String]
+      constValueTuple[mirror.MirroredElemLabels].productElement(mirror.ordinal(a)).asInstanceOf[String]
 
     type Aux[A, Repr <: Tuple] = Mirror.Sum[A] { type MirroredElemTypes = Repr }
 
