@@ -10,6 +10,9 @@ import com.peknight.generic.tuple.ops.*
 import scala.compiletime.{constValue, constValueTuple}
 
 trait IdInstances:
+
+  given [A]: Migration[A, A] = Kleisli(identity)
+
   inline given [A <: Product, Repr <: Tuple](using mirror: Mirror.Product.Aux[A, Repr]): Migration[A, Repr] =
     Kleisli(Tuple.fromProductTyped)
 
@@ -44,6 +47,14 @@ trait IdInstances:
         case (_, value) => value.asInstanceOf[Second[T]]
     }
   ))
+  end given
+
+  inline given[A <: Product, ALabels <: Tuple, ARepr <: Tuple, B, Added <: Tuple](
+    using
+    aMirror: Mirror.Product.Labelled[A, ALabels, ARepr],
+    selector: Selector[ARepr, B]
+  ): Migration[A, B] = Kleisli((a: A) => selector(Tuple.fromProductTyped(a)))
+  end given
 end IdInstances
 
 object IdInstances extends IdInstances
