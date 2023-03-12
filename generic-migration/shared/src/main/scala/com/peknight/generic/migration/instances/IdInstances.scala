@@ -49,9 +49,13 @@ trait IdInstances:
   ))
   end given
 
-  inline given[A <: Product, ALabels <: Tuple, ARepr <: Tuple, B, Added <: Tuple](
+  inline given[Repr <: Tuple, A](using selector: Selector[Repr, A]): Migration[Repr, A] =
+    Kleisli((repr: Repr) => selector(repr))
+  end given
+
+  inline given[A <: Product, ARepr <: Tuple, B](
     using
-    aMirror: Mirror.Product.Labelled[A, ALabels, ARepr],
+    aMirror: Mirror.Product.Aux[A, ARepr],
     selector: Selector[ARepr, B]
   ): Migration[A, B] = Kleisli((a: A) => selector(Tuple.fromProductTyped(a)))
   end given
