@@ -1,7 +1,7 @@
 package com.peknight.generic.deriving
 
 import cats.Applicative
-import com.peknight.generic.tuple.Lifted
+import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{foldLeft, mapN}
 
 import scala.Tuple.Size
@@ -40,7 +40,7 @@ object Generic:
     type MirrorType <: Mirror.Labelled[A, Labels, Repr]
     type GenericType <: Generic.Aux[A, Labels, Repr, MirrorType]
     def generic: GenericType
-    def instances: Lifted[F, Repr]
+    def instances: Map[Repr, F]
 
     def mirror: MirrorType = generic.mirror
     def size: Int = generic.size
@@ -57,13 +57,13 @@ object Generic:
     def apply[F[_], A](using inst: Instances[F, A]): Generic.Instances[F, A] = inst
     sealed abstract class Aux[F[_], A, Labels0 <: Tuple, Repr0 <: Tuple,
       MirrorType0 <: Mirror.Labelled[A, Labels0, Repr0], GenericType0 <: Generic.Aux[A, Labels0, Repr0, MirrorType0]](
-      val generic: GenericType0, instances0: () => Lifted[F, Repr0]
+      val generic: GenericType0, instances0: () => Map[Repr0, F]
     ) extends Generic.Instances[F, A]:
       type Labels = Labels0
       type Repr = Repr0
       type MirrorType = MirrorType0
       type GenericType = GenericType0
-      lazy val instances: Lifted[F, Repr] = instances0()
+      lazy val instances: Map[Repr, F] = instances0()
     end Aux
     object Aux:
       def apply[F[_], A, Labels <: Tuple, Repr <: Tuple, MirrorType <: Mirror.Labelled[A, Labels, Repr],
@@ -99,22 +99,22 @@ object Generic:
       type MirrorType = Mirror.Product.Labelled[A, Labels, Repr]
       type GenericType = Generic.Product.Aux[A, Labels, Repr]
       def fromInstances(using Applicative[F]): F[A] = instances.mapN(from)
-      def map[G[_]](a: A)(f: [T] => (F[T], T) => G[T]): Lifted[G, Repr] =
+      def map[G[_]](a: A)(f: [T] => (F[T], T) => G[T]): Map[Repr, G] =
         type H[E] = E match { case (_, t) => G[t] }
         instances.zip(to(a)).map[H] {
           [E] => (e: E) =>
             type U = E match { case (_, t) => t }
             val (instance, value) = e.asInstanceOf[(F[U], U)]
             f(instance, value).asInstanceOf[H[E]]
-        }.asInstanceOf[Lifted[G, Repr]]
-      def mapWithLabel[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): Lifted[G, Repr] =
+        }.asInstanceOf[Map[Repr, G]]
+      def mapWithLabel[G[_]](a: A)(f: [T] => (F[T], T, String) => G[T]): Map[Repr, G] =
         type H[E] = E match { case ((_, t), _) => G[t] }
         instances.zip(to(a)).zip(labels).map[H] {
           [E] => (e: E) =>
             type U = E match { case ((_, t), _) => t }
             val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
             f(instance, value, label).asInstanceOf[H[E]]
-        }.asInstanceOf[Lifted[G, Repr]]
+        }.asInstanceOf[Map[Repr, G]]
       def foldLeft[B](a: A)(b: B)(f: [T] => (B, F[T], T) => B): B =
         instances.zip(to(a)).foldLeft[B](b) { [E] => (b: B, e: E) =>
           type U = E match { case (_, t) => t }
@@ -134,7 +134,7 @@ object Generic:
       def apply[F[_], A](using inst: Generic.Product.Instances[F, A]): Generic.Product.Instances[F, A] = inst
       final class Aux[F[_], A, Labels <: Tuple, Repr <: Tuple](
         override val generic: Generic.Product.Aux[A, Labels, Repr],
-        instances0: () => Lifted[F, Repr]
+        instances0: () => Map[Repr, F]
       ) extends Generic.Instances.Aux[F, A, Labels, Repr, Mirror.Product.Labelled[A, Labels, Repr],
         Generic.Product.Aux[A, Labels, Repr]](generic, instances0) with Generic.Product.Instances[F, A]
       object Aux:
@@ -190,7 +190,7 @@ object Generic:
       def apply[F[_], A](using inst: Generic.Sum.Instances[F, A]): Generic.Sum.Instances[F, A] = inst
       final class Aux[F[_], A, Labels <: Tuple, Repr <: Tuple](
         override val generic: Generic.Sum.Aux[A, Labels, Repr],
-        instances0: () => Lifted[F, Repr]
+        instances0: () => Map[Repr, F]
       ) extends Generic.Instances.Aux[F, A, Labels, Repr, Mirror.Sum.Labelled[A, Labels, Repr],
         Generic.Sum.Aux[A, Labels, Repr]](generic, instances0) with Generic.Sum.Instances[F, A]
       object Aux:
@@ -213,9 +213,9 @@ object Generic:
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Product.Aux[A, Labels, Repr])
   : Generic.Product.Instances.Aux[F, A, Labels, Repr] =
-    new Generic.Product.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Lifted[F, Repr]])
+    new Generic.Product.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Map[Repr, F]])
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Sum.Aux[A, Labels, Repr])
   : Generic.Sum.Instances.Aux[F, A, Labels, Repr] =
-    new Generic.Sum.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Lifted[F, Repr]])
+    new Generic.Sum.Instances.Aux[F, A, Labels, Repr](generic, () => summonAll[Map[Repr, F]])
 end Generic

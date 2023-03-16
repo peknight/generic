@@ -2,7 +2,7 @@ package com.peknight.generic.tuple
 
 import cats.{Applicative, Eval, Functor, Semigroupal}
 import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
-import com.peknight.generic.tuple.{Lifted, Reverse}
+import com.peknight.generic.tuple.{Map, Reverse}
 
 import scala.Tuple.Zip
 
@@ -12,7 +12,7 @@ package object syntax:
 
     def flatMap[F[_] <: Tuple](f: [A] => A => F[A]): Tuple.FlatMap[T, F] = TupleOps.flatMap[T, F](tuple)(f)
 
-    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[Lifted[F, T]] = 
+    def traverse[F[_], G[_] : Applicative](f: [A] => A => G[F[A]]): G[Map[T, F]] = 
       TupleOps.traverse[T, F, G](tuple)(f)
 
     def foldLeft[B](b: B)(f: [A] => (B, A) => B): B = TupleOps.foldLeft[B](tuple, b)(f)
@@ -29,7 +29,7 @@ package object syntax:
 
   end extension
 
-  extension [T <: Tuple, G[_] : Applicative] (tuple: Lifted[G, T])
+  extension [T <: Tuple, G[_] : Applicative] (tuple: Map[T, G])
     def sequence: G[T] = TupleOps.sequence[T, G](tuple)
 
     def mapN[Z](f: T => Z): G[Z] = TupleOps.mapN[T, G, Z](tuple)(f)
@@ -40,7 +40,7 @@ package object syntax:
   end extension
 
   object nonEmptyTuple:
-    extension [T <: NonEmptyTuple, G[_] : Functor : Semigroupal] (tuple: NonEmptyLifted[G, T])
+    extension [T <: NonEmptyTuple, G[_] : Functor : Semigroupal] (tuple: NonEmptyMap[T, G])
       def mapN[Z](f: T => Z): G[Z] = NonEmptyTupleOps.mapN[T, G, Z](tuple)(f)
     end extension
   end nonEmptyTuple

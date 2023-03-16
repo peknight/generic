@@ -1,7 +1,7 @@
 package com.peknight.generic.tuple.ops
 
 import cats.{Applicative, Eval, Functor, Id, Semigroupal}
-import com.peknight.generic.tuple.{Lifted, Reverse}
+import com.peknight.generic.tuple.{Map, Reverse}
 
 import scala.Tuple.{Last, Zip}
 import scala.annotation.tailrec
@@ -22,10 +22,10 @@ object TupleOps:
     loop[Id](reverse(tuple), EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => f(a) ++ acc)
       .asInstanceOf[Tuple.FlatMap[T, F]]
 
-  def traverse[T <: Tuple, F[_], G[_] : Applicative](tuple: T)(f: [A] => A => G[F[A]]): G[Lifted[F, T]] =
+  def traverse[T <: Tuple, F[_], G[_] : Applicative](tuple: T)(f: [A] => A => G[F[A]]): G[Map[T, F]] =
     loop[G](reverse(tuple), Applicative[G].pure(EmptyTuple))(
       [A] => (a: A, acc: G[Tuple]) => Applicative[G].map2(f(a), acc)(_ *: _)
-    ).asInstanceOf[G[Lifted[F, T]]]
+    ).asInstanceOf[G[Map[T, F]]]
 
   @tailrec def foldLeft[B](tuple: Tuple, b: B)(f: [A] => (B, A) => B): B =
     tuple match
@@ -63,11 +63,11 @@ object TupleOps:
       case (h *: t, _) => loop(t, f(h))
     loop(tuple, false)
 
-  def sequence[T <: Tuple, G[_] : Applicative](tuple: Lifted[G, T]): G[T] =
+  def sequence[T <: Tuple, G[_] : Applicative](tuple: Map[T, G]): G[T] =
     type F[A] = A match { case G[x] => x }
-    traverse[Lifted[G, T], F, G](tuple)([A] => (a: A) => a.asInstanceOf[G[F[A]]]).asInstanceOf[G[T]]
+    traverse[Map[T, G], F, G](tuple)([A] => (a: A) => a.asInstanceOf[G[F[A]]]).asInstanceOf[G[T]]
 
-  def mapN[T <: Tuple, G[_] : Applicative, Z](tuple: Lifted[G, T])(f: T => Z): G[Z] =
+  def mapN[T <: Tuple, G[_] : Applicative, Z](tuple: Map[T, G])(f: T => Z): G[Z] =
     Applicative[G].map(sequence(tuple))(f)
 
   def unzip[T <: Tuple, U <: Tuple](tuple: Zip[T, U]): (T, U) =
