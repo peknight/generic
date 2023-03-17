@@ -17,4 +17,6 @@ package object tuple:
   type Typed[T <: Tuple, A] = T match
     case A *: t => Typed[t, A]
     case EmptyTuple => DummyImplicit
+  type LabelledValue[A] = (String, A)
+  type LabelledTuple[Repr <: Tuple] = Map[Repr, LabelledValue]
 end tuple
