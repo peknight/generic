@@ -67,14 +67,14 @@ object Generic:
   object Product:
     def apply[A](using generic: Generic.Product[A]): Generic.Product[A] = generic
 
-    sealed abstract class Aux[A, Labels0 <: Tuple, Repr0 <: Tuple](override val size: Int, override val labels: Labels0)
-      extends Generic.Aux[A, Labels0, Repr0](size, labels) with Generic.Product[A]
+    sealed abstract class Aux[A, Labels <: Tuple, Repr <: Tuple](override val size: Int, override val labels: Labels)
+      extends Generic.Aux[A, Labels, Repr](size, labels) with Generic.Product[A]
 
-    final class MirrorAux[A <: scala.Product, Labels0 <: Tuple, Repr0 <: Tuple](
-      mirror: Mirror.Product.Labelled[A, Labels0, Repr0],
+    final class MirrorAux[A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
+      mirror: Mirror.Product.Labelled[A, Labels, Repr],
       override val size: Int,
-      override val labels: Labels0
-    ) extends Generic.Product.Aux[A, Labels0, Repr0](size, labels):
+      override val labels: Labels
+    ) extends Generic.Product.Aux[A, Labels, Repr](size, labels):
       def to(a: A): Repr = Tuple.fromProduct(a).asInstanceOf[Repr]
       def from(repr: Repr): A = mirror.fromProduct(repr)
     end MirrorAux
@@ -143,18 +143,18 @@ object Generic:
   object Sum:
     def apply[A](using generic: Generic.Sum[A]): Generic.Sum[A] = generic
 
-    sealed abstract class Aux[A, Labels0 <: Tuple, Repr0 <: Tuple](
+    sealed abstract class Aux[A, Labels <: Tuple, Repr <: Tuple](
       override val size: Int,
-      override val labels: Labels0
-    ) extends Generic.Aux[A, Labels0, Repr0](
+      override val labels: Labels
+    ) extends Generic.Aux[A, Labels, Repr](
       size, labels
     ) with Generic.Sum[A]
 
-    final class MirrorAux[A, Labels0 <: Tuple, Repr <: Tuple](
-      mirror: Mirror.Sum.Labelled[A, Labels0, Repr],
+    final class MirrorAux[A, Labels <: Tuple, Repr <: Tuple](
+      mirror: Mirror.Sum.Labelled[A, Labels, Repr],
       override val size: Int,
-      override val labels: Labels0
-    ) extends Generic.Sum.Aux[A, Labels0, Repr](size, labels):
+      override val labels: Labels
+    ) extends Generic.Sum.Aux[A, Labels, Repr](size, labels):
       def ordinal(a: A): Int = mirror.ordinal(a)
     end MirrorAux
 
@@ -194,10 +194,10 @@ object Generic:
     end Instances
   end Sum
 
-  inline given [A <: scala.Product, Labels <: Tuple, Repr0 <: Tuple](
-    using mirror: Mirror.Product.Labelled[A, Labels, Repr0]
-  ): Generic.Product.MirrorAux[A, Labels, Repr0] =
-    new Generic.Product.MirrorAux[A, Labels, Repr0](mirror, constValue[Size[Repr0]], constValueTuple[Labels])
+  inline given [A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
+    using mirror: Mirror.Product.Labelled[A, Labels, Repr]
+  ): Generic.Product.MirrorAux[A, Labels, Repr] =
+    new Generic.Product.MirrorAux[A, Labels, Repr](mirror, constValue[Size[Repr]], constValueTuple[Labels])
 
   inline given [A, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Sum.Labelled[A, Labels, Repr]
