@@ -2,7 +2,7 @@ package com.peknight.generic.tuple
 
 import cats.{Applicative, Eval, Functor, Semigroupal}
 import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
-import com.peknight.generic.tuple.{Map, Reverse}
+import com.peknight.generic.tuple.{LabelledTuple, LabelledValue, Map, Reverse}
 
 import scala.Tuple.Zip
 
@@ -44,4 +44,12 @@ package object syntax:
       def mapN[Z](f: T => Z): G[Z] = NonEmptyTupleOps.mapN[T, G, Z](tuple)(f)
     end extension
   end nonEmptyTuple
+
+  extension[A] (a: A)
+    def label(lab: String): LabelledValue[A] = (lab, a)
+  end extension
+
+  extension[A] (labelledValue: LabelledValue[A])
+    def tuple: LabelledTuple[A *: EmptyTuple] = labelledValue *: EmptyTuple
+  end extension
 end syntax
