@@ -18,5 +18,12 @@ package object tuple:
     case A *: t => Typed[t, A]
     case EmptyTuple => DummyImplicit
   type LabelledValue[A] = (String, A)
-  type LabelledTuple[Repr <: Tuple] = Map[Repr, LabelledValue]
+  type LabelledTuple[T <: Tuple] <: Tuple =
+    T match
+      case h *: t => LabelledValue[h] *: LabelledTuple[t]
+      case _ => EmptyTuple
+  type LabelTuple[T <: Tuple] <: Tuple =
+    T match
+      case _ *: t => String *: LabelTuple[t]
+      case _ => EmptyTuple
 end tuple
