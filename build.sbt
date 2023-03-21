@@ -22,7 +22,9 @@ lazy val generic = (project in file("."))
     genericScalaCheck.jvm,
     genericScalaCheck.js,
     genericMigration.jvm,
-    genericMigration.js
+    genericMigration.js,
+    genericUpdater.jvm,
+    genericUpdater.js,
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -59,6 +61,16 @@ lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("gene
   .dependsOn(genericCore, genericScalaCheck % Test)
   .settings(
     name := "generic-migration",
+    scalacOptions --= Seq(
+      "-Xfatal-warnings",
+    ),
+  )
+
+lazy val genericUpdater = (crossProject(JSPlatform, JVMPlatform) in file("generic-updater"))
+  .settings(commonSettings)
+  .dependsOn(genericCore, genericScalaCheck % Test)
+  .settings(
+    name := "generic-updater",
     scalacOptions --= Seq(
       "-Xfatal-warnings",
     ),
