@@ -48,7 +48,7 @@ lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("gen
     name := "generic-scalacheck",
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion,
-      "com.peknight" %%% "cats-instances-scalacheck" % pekCatsInstancesScalaCheckVersion,
+      "com.peknight" %%% "cats-instances-scalacheck" % pekCatsInstancesVersion,
       "org.typelevel" %%% "cats-laws" % catsVersion % Test,
     ),
     scalacOptions --= Seq(
@@ -64,6 +64,9 @@ lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("gene
     scalacOptions --= Seq(
       "-Xfatal-warnings",
     ),
+    libraryDependencies ++= Seq(
+      "com.peknight" %%% "cats-instances-tuple" % pekCatsInstancesVersion % Test,
+    ),
   )
 
 lazy val genericUpdater = (crossProject(JSPlatform, JVMPlatform) in file("generic-updater"))
@@ -78,4 +81,4 @@ lazy val genericUpdater = (crossProject(JSPlatform, JVMPlatform) in file("generi
 
 val catsVersion = "2.9.0"
 val scalaCheckVersion = "1.17.0"
-val pekCatsInstancesScalaCheckVersion = "0.1.0-SNAPSHOT"
+val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
