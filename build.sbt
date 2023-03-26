@@ -21,10 +21,8 @@ lazy val generic = (project in file("."))
     genericCore.js,
     genericScalaCheck.jvm,
     genericScalaCheck.js,
-    genericMigration.jvm,
-    genericMigration.js,
-    genericUpdater.jvm,
-    genericUpdater.js,
+    genericMapper.jvm,
+    genericMapper.js
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -56,26 +54,16 @@ lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("gen
     ),
   )
 
-lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("generic-migration"))
+lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic-mapper"))
   .settings(commonSettings)
   .dependsOn(genericCore, genericScalaCheck % Test)
   .settings(
-    name := "generic-migration",
+    name := "generic-mapper",
     scalacOptions --= Seq(
       "-Xfatal-warnings",
     ),
     libraryDependencies ++= Seq(
       "com.peknight" %%% "cats-instances-tuple" % pekCatsInstancesVersion % Test,
-    ),
-  )
-
-lazy val genericUpdater = (crossProject(JSPlatform, JVMPlatform) in file("generic-updater"))
-  .settings(commonSettings)
-  .dependsOn(genericCore, genericScalaCheck % Test)
-  .settings(
-    name := "generic-updater",
-    scalacOptions --= Seq(
-      "-Xfatal-warnings",
     ),
   )
 
