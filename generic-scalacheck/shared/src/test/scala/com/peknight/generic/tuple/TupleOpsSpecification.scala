@@ -48,3 +48,19 @@ class TupleOpsSpecification extends Properties("TupleOps"):
     import com.peknight.generic.tuple.syntax.reverse
     (a, b, c).reverse == (c, b, a)
   }
+
+  property("mkString(start, sep, end)") = forAll {
+    (a: String, b: Int, c: Boolean, start: String, sep: String, end: String) =>
+      import com.peknight.generic.tuple.syntax.mkString
+      (a, b, c).mkString(start, sep, end) == s"$start$a$sep$b$sep$c$end"
+  }
+
+  property("mkString(sep)") = forAll { (a: String, b: Int, c: Boolean, sep: String) =>
+    import com.peknight.generic.tuple.syntax.mkString
+    (a, b, c).mkString(sep) == s"$a$sep$b$sep$c"
+  }
+
+  property("mkString") = forAll { (a: String, b: Int, c: Boolean) =>
+    import com.peknight.generic.tuple.syntax.mkString
+    (a, b, c).mkString == s"$a$b$c"
+  }

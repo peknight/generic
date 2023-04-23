@@ -8,6 +8,10 @@ import scala.Tuple.Zip
 
 package object syntax:
   extension [T <: Tuple] (tuple: T)
+    def isEmpty: Boolean = TupleOps.isEmpty(tuple)
+
+    def nonEmpty: Boolean = TupleOps.nonEmpty(tuple)
+
     def reverse: Reverse[T] = TupleOps.reverse(tuple)
 
     def flatMap[F[_] <: Tuple](f: [A] => A => F[A]): Tuple.FlatMap[T, F] = TupleOps.flatMap[T, F](tuple)(f)
@@ -26,6 +30,12 @@ package object syntax:
     def forall(f: [A] => A => Boolean): Boolean = TupleOps.forall(tuple)(f)
 
     def exists(f: [A] => A => Boolean): Boolean = TupleOps.exists(tuple)(f)
+
+    def mkString(start: String, sep: String, end: String): String = TupleOps.mkString(tuple, start, sep, end)
+
+    def mkString(sep: String): String = TupleOps.mkString(tuple, sep)
+
+    def mkString: String = TupleOps.mkString(tuple)
 
   end extension
 

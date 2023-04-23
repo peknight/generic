@@ -15,6 +15,14 @@ object TupleOps:
       case h *: t => loop(t, f(h, acc))(f)
   end loop
 
+  def isEmpty[T <: Tuple](tuple: T): Boolean =
+    tuple match
+      case _: EmptyTuple => true
+      case _ => false
+  end isEmpty
+
+  def nonEmpty[T <: Tuple](tuple: T): Boolean = !isEmpty(tuple)
+
   def reverse[T <: Tuple](tuple: T): Reverse[T] =
     loop[Id](tuple, EmptyTuple)([A] => (a: A, acc: Id[Tuple]) => a *: acc).asInstanceOf[Reverse[T]]
 
@@ -75,5 +83,24 @@ object TupleOps:
       val ((th, uh), (tt, ut)) = (a, b): @unchecked
       (th *: tt, uh *: ut)
     }.asInstanceOf[(T, U)]
+
+  def mkString[T <: Tuple](tuple: T, start: String, sep: String, end: String): String =
+    val builder = new StringBuilder()
+    if start.nonEmpty then builder.append(start)
+    mkString(tuple, sep, builder)
+    if end.nonEmpty then builder.append(end)
+    builder.toString()
+
+  def mkString[T <: Tuple](tuple: T, sep: String): String =
+    mkString(tuple, sep, new StringBuilder()).toString()
+
+  def mkString[T <: Tuple](tuple: T): String =
+    mkString(tuple, "", new StringBuilder()).toString()
+
+  @tailrec private[this] def mkString[T <: Tuple](tuple: T, sep: String, builder: StringBuilder): StringBuilder =
+    tuple match
+      case _: EmptyTuple => builder
+      case h *: (_: EmptyTuple) => builder.append(h)
+      case h *: t => mkString(t, sep, builder.append(h).append(sep))
 
 end TupleOps
