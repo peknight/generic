@@ -22,7 +22,8 @@ lazy val generic = (project in file("."))
     genericScalaCheck.jvm,
     genericScalaCheck.js,
     genericMapper.jvm,
-    genericMapper.js
+    genericMapper.js,
+    genericDoobie,
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -67,6 +68,19 @@ lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic
     ),
   )
 
+lazy val genericDoobie = (project in file("generic-doobie"))
+  .settings(commonSettings)
+  .dependsOn(genericMapper.jvm)
+  .settings(
+    name := "generic-doobie",
+    libraryDependencies ++= Seq(
+      doobieCore,
+    ),
+  )
+
 val catsVersion = "2.9.0"
+val doobieVersion = "1.0.0-RC2"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
+
+val doobieCore = "org.tpolecat" %% "doobie-core" % doobieVersion
