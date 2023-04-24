@@ -1,4 +1,4 @@
 package com.peknight.generic.mapper.instances.migration
 
-trait AllInstances extends IdInstances
+trait AllInstances extends BidirectionalInstances with IdInstances
 object AllInstances extends AllInstances
