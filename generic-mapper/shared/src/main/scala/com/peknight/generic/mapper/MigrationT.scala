@@ -8,4 +8,7 @@ trait MigrationT[F[_], -A, B]:
   def kleisli: Kleisli[F, A, B] = Kleisli(migrate)
 
 end MigrationT
-object MigrationT extends AllInstances
+object MigrationT extends AllInstances:
+  def apply[F[_], A, B](f: A => F[B]): MigrationT[F, A, B] = f(_)
+end MigrationT
+
