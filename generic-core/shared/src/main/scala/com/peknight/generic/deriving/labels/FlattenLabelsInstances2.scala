@@ -4,7 +4,7 @@ import com.peknight.generic.deriving.Generic
 import com.peknight.generic.tuple.ops.TupleOps
 
 trait FlattenLabelsInstances2 extends FlattenLabelsInstances3:
-  given genericFlattenLabels[A] (using generic: Generic.Instances[FlattenLabels, A]): FlattenLabels[A] with
+  given productFlattenLabels[A] (using generic: Generic.Product.Instances[FlattenLabels, A]): FlattenLabels[A] with
     def labels: List[String] =
       val tuple = generic.labels.zip(generic.instances.map[[_] =>> List[String]] {
         [T] => (t: T) => t.asInstanceOf[FlattenLabels[T]].labels
@@ -15,5 +15,5 @@ trait FlattenLabelsInstances2 extends FlattenLabelsInstances3:
           case Nil => label :: acc
           case _ => labels ::: acc
       }
-  end genericFlattenLabels
+  end productFlattenLabels
 end FlattenLabelsInstances2
