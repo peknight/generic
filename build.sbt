@@ -78,8 +78,22 @@ lazy val genericDoobie = (project in file("generic-doobie"))
     ),
   )
 
+lazy val genericHttp4s = (crossProject(JSPlatform, JVMPlatform) in file("generic-http4s"))
+  .settings(commonSettings)
+  .dependsOn(genericCore, genericScalaCheck % Test)
+  .settings(
+    name := "generic-mapper",
+    scalacOptions --= Seq(
+      "-Xfatal-warnings",
+    ),
+    libraryDependencies ++= Seq(
+      "org.http4s" %%% "http4s-core" % http4sVersion,
+    ),
+  )
+
 val catsVersion = "2.9.0"
 val doobieVersion = "1.0.0-RC2"
+val http4sVersion = "1.0.0-M32"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
 
