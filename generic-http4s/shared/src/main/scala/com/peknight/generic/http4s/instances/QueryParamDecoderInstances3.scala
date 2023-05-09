@@ -1,33 +1,39 @@
 package com.peknight.generic.http4s.instances
 
-import com.peknight.generic.mapper.Migration
-import org.http4s.{QueryParamDecoder, Uri}
+import com.peknight.error.Error.SingleError
+import com.peknight.generic.mapper.MigrationT
+import org.http4s.{ParseFailure, QueryParamDecoder, Uri}
 
 import java.time.{Period, ZoneId}
 
-trait QueryParamDecoderInstances3:
-  given unitDecoder[A](using migration: Migration[Unit, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.unitQueryParamDecoder.map[A](migration.migrate)
-  given booleanDecoder[A](using migration: Migration[Boolean, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.booleanQueryParamDecoder.map[A](migration.migrate)
-  given doubleDecoder[A](using migration: Migration[Double, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.doubleQueryParamDecoder.map[A](migration.migrate)
-  given floatDecoder[A](using migration: Migration[Float, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.floatQueryParamDecoder.map[A](migration.migrate)
-  given shortDecoder[A](using migration: Migration[Short, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.shortQueryParamDecoder.map[A](migration.migrate)
-  given intDecoder[A](using migration: Migration[Int, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.intQueryParamDecoder.map[A](migration.migrate)
-  given longDecoder[A](using migration: Migration[Long, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.longQueryParamDecoder.map[A](migration.migrate)
-  given charDecoder[A](using migration: Migration[Char, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.charQueryParamDecoder.map[A](migration.migrate)
-  given stringDecoder[A](using migration: Migration[String, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.stringQueryParamDecoder.map[A](migration.migrate)
-  given uriDecoder[A](using migration: Migration[Uri, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.uriQueryParamDecoder.map[A](migration.migrate)
-  given zoneIdDecoder[A](using migration: Migration[ZoneId, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.zoneId.map[A](migration.migrate)
-  given periodDecoder[A](using migration: Migration[Period, A]): QueryParamDecoder[A] =
-    QueryParamDecoder.period.map[A](migration.migrate)
+trait QueryParamDecoderInstances3 extends QueryParamDecoderInstances4:
+  private[this] def migrate[A, B](using migration: MigrationT[[T] =>> Either[SingleError, T], A, B])
+  : A => Either[ParseFailure, B] =
+    a => migration.migrate(a).left.map(error => ParseFailure(error.message, error.label))
+
+  given unitErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Unit, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.unitQueryParamDecoder.emap[A](migrate)
+  given booleanErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Boolean, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.booleanQueryParamDecoder.emap[A](migrate)
+  given doubleErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Double, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.doubleQueryParamDecoder.emap[A](migrate)
+  given floatErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Float, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.floatQueryParamDecoder.emap[A](migrate)
+  given shortErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Short, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.shortQueryParamDecoder.emap[A](migrate)
+  given intErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Int, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.intQueryParamDecoder.emap[A](migrate)
+  given longErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Long, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.longQueryParamDecoder.emap[A](migrate)
+  given charErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Char, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.charQueryParamDecoder.emap[A](migrate)
+  given stringErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], String, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.stringQueryParamDecoder.emap[A](migrate)
+  given uriErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Uri, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.uriQueryParamDecoder.emap[A](migrate)
+  given zoneIdErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], ZoneId, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.zoneId.emap[A](migrate)
+  given periodErrorDecoder[A](using MigrationT[[T] =>> Either[SingleError, T], Period, A]): QueryParamDecoder[A] =
+    QueryParamDecoder.period.emap[A](migrate)
+
 end QueryParamDecoderInstances3

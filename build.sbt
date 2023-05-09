@@ -87,6 +87,7 @@ lazy val genericHttp4s = (crossProject(JSPlatform, JVMPlatform) in file("generic
     name := "generic-http4s",
     libraryDependencies ++= Seq(
       "org.http4s" %%% "http4s-core" % http4sVersion,
+      "com.peknight" %%% "error-core" % pekErrorVersion,
     ),
   )
 
@@ -95,5 +96,6 @@ val doobieVersion = "1.0.0-RC2"
 val http4sVersion = "1.0.0-M32"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
+val pekErrorVersion = "0.1.0-SNAPSHOT"
 
 val doobieCore = "org.tpolecat" %% "doobie-core" % doobieVersion
