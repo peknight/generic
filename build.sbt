@@ -24,6 +24,8 @@ lazy val generic = (project in file("."))
     genericMapper.jvm,
     genericMapper.js,
     genericDoobie,
+    genericHttp4s.jvm,
+    genericHttp4s.js,
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -41,8 +43,8 @@ lazy val genericCore = (crossProject(JSPlatform, JVMPlatform) in file("generic-c
   )
 
 lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("generic-scalacheck"))
-  .settings(commonSettings)
   .dependsOn(genericCore)
+  .settings(commonSettings)
   .settings(
     name := "generic-scalacheck",
     libraryDependencies ++= Seq(
@@ -56,8 +58,8 @@ lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("gen
   )
 
 lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic-mapper"))
-  .settings(commonSettings)
   .dependsOn(genericCore, genericScalaCheck % Test)
+  .settings(commonSettings)
   .settings(
     name := "generic-mapper",
     scalacOptions --= Seq(
@@ -69,8 +71,8 @@ lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic
   )
 
 lazy val genericDoobie = (project in file("generic-doobie"))
-  .settings(commonSettings)
   .dependsOn(genericMapper.jvm)
+  .settings(commonSettings)
   .settings(
     name := "generic-doobie",
     libraryDependencies ++= Seq(
@@ -79,13 +81,10 @@ lazy val genericDoobie = (project in file("generic-doobie"))
   )
 
 lazy val genericHttp4s = (crossProject(JSPlatform, JVMPlatform) in file("generic-http4s"))
+  .dependsOn(genericMapper)
   .settings(commonSettings)
-  .dependsOn(genericCore, genericScalaCheck % Test)
   .settings(
-    name := "generic-mapper",
-    scalacOptions --= Seq(
-      "-Xfatal-warnings",
-    ),
+    name := "generic-http4s",
     libraryDependencies ++= Seq(
       "org.http4s" %%% "http4s-core" % http4sVersion,
     ),
