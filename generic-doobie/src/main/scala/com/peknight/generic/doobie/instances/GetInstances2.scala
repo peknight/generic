@@ -1,19 +1,28 @@
 package com.peknight.generic.doobie.instances
 
-import com.peknight.generic.doobie.ops.GetOps
 import com.peknight.generic.mapper.Migration
 import doobie.{Get, Meta}
 
 trait GetInstances2:
-  given getByte[A](using Migration[Byte, A]): Get[A] = GetOps.migrate[Byte, A](Meta[Byte].get)
-  given getShort[A](using Migration[Short, A]): Get[A] = GetOps.migrate[Short, A](Meta[Short].get)
-  given getInt[A](using Migration[Int, A]): Get[A] = GetOps.migrate[Int, A](Meta[Int].get)
-  given getLong[A](using Migration[Long, A]): Get[A] = GetOps.migrate[Long, A](Meta[Long].get)
-  given getFLoat[A](using Migration[Float, A]): Get[A] = GetOps.migrate[Float, A](Meta[Float].get)
-  given getDouble[A](using Migration[Double, A]): Get[A] = GetOps.migrate[Double, A](Meta[Double].get)
-  given getBigDecimal[A](using Migration[BigDecimal, A]): Get[A] = GetOps.migrate[BigDecimal, A](Meta[BigDecimal].get)
-  given getBoolean[A](using Migration[Boolean, A]): Get[A] = GetOps.migrate[Boolean, A](Meta[Boolean].get)
-  given getString[A](using Migration[String, A]): Get[A] = GetOps.migrate[String, A](Meta[String].get)
-  given getByteArray[A](using Migration[Array[Byte], A]): Get[A] = GetOps.migrate[Array[Byte], A](Meta[Array[Byte]].get)
+  given getByte[A](using migration: Migration[Byte, A]): Get[A] =
+    Meta[Byte].get.map(migration.migrate)
+  given getShort[A](using migration: Migration[Short, A]): Get[A] =
+    Meta[Short].get.map(migration.migrate)
+  given getInt[A](using migration: Migration[Int, A]): Get[A] =
+    Meta[Int].get.map(migration.migrate)
+  given getLong[A](using migration: Migration[Long, A]): Get[A] =
+    Meta[Long].get.map(migration.migrate)
+  given getFLoat[A](using migration: Migration[Float, A]): Get[A] =
+    Meta[Float].get.map(migration.migrate)
+  given getDouble[A](using migration: Migration[Double, A]): Get[A] =
+    Meta[Double].get.map(migration.migrate)
+  given getBigDecimal[A](using migration: Migration[BigDecimal, A]): Get[A] =
+    Meta[BigDecimal].get.map(migration.migrate)
+  given getBoolean[A](using migration: Migration[Boolean, A]): Get[A] =
+    Meta[Boolean].get.map(migration.migrate)
+  given getString[A](using migration: Migration[String, A]): Get[A] =
+    Meta[String].get.map(migration.migrate)
+  given getByteArray[A](using migration: Migration[Array[Byte], A]): Get[A] =
+    Meta[Array[Byte]].get.map(migration.migrate)
 end GetInstances2
 

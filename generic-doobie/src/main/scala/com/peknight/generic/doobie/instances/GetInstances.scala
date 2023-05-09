@@ -1,30 +1,29 @@
 package com.peknight.generic.doobie.instances
 
-import com.peknight.generic.doobie.ops.GetOps
 import com.peknight.generic.mapper.Migration
 import doobie.{Get, Meta}
 import org.tpolecat.typename.TypeName
 
 trait GetInstances extends GetInstances2:
-  given tgetByte[A](using Migration[Byte, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Byte, A](Meta[Byte].get)
-  given tgetShort[A](using Migration[Short, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Short, A](Meta[Short].get)
-  given tgetInt[A](using Migration[Int, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Int, A](Meta[Int].get)
-  given tgetLong[A](using Migration[Long, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Long, A](Meta[Long].get)
-  given tgetFLoat[A](using Migration[Float, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Float, A](Meta[Float].get)
-  given tgetDouble[A](using Migration[Double, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Double, A](Meta[Double].get)
-  given tgetBigDecimal[A](using Migration[BigDecimal, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[BigDecimal, A](Meta[BigDecimal].get)
-  given tgetBoolean[A](using Migration[Boolean, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Boolean, A](Meta[Boolean].get)
-  given tgetString[A](using Migration[String, A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[String, A](Meta[String].get)
-  given tgetByteArray[A](using Migration[Array[Byte], A], TypeName[A]): Get[A] =
-    GetOps.tmigrate[Array[Byte], A](Meta[Array[Byte]].get)
+  given tgetByte[A](using migration: Migration[Byte, A], typeName: TypeName[A]): Get[A] =
+    Meta[Byte].get.tmap(migration.migrate)
+  given tgetShort[A](using migration: Migration[Short, A], typeName: TypeName[A]): Get[A] =
+    Meta[Short].get.tmap(migration.migrate)
+  given tgetInt[A](using migration: Migration[Int, A], typeName: TypeName[A]): Get[A] =
+    Meta[Int].get.tmap(migration.migrate)
+  given tgetLong[A](using migration: Migration[Long, A], typeName: TypeName[A]): Get[A] =
+    Meta[Long].get.tmap(migration.migrate)
+  given tgetFLoat[A](using migration: Migration[Float, A], typeName: TypeName[A]): Get[A] =
+    Meta[Float].get.tmap(migration.migrate)
+  given tgetDouble[A](using migration: Migration[Double, A], typeName: TypeName[A]): Get[A] =
+    Meta[Double].get.tmap(migration.migrate)
+  given tgetBigDecimal[A](using migration: Migration[BigDecimal, A], typeName: TypeName[A]): Get[A] =
+    Meta[BigDecimal].get.tmap(migration.migrate)
+  given tgetBoolean[A](using migration: Migration[Boolean, A], typeName: TypeName[A]): Get[A] =
+    Meta[Boolean].get.tmap(migration.migrate)
+  given tgetString[A](using migration: Migration[String, A], typeName: TypeName[A]): Get[A] =
+    Meta[String].get.tmap(migration.migrate)
+  given tgetByteArray[A](using migration: Migration[Array[Byte], A], typeName: TypeName[A]): Get[A] =
+    Meta[Array[Byte]].get.tmap(migration.migrate)
 end GetInstances
 object GetInstances extends GetInstances
