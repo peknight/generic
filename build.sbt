@@ -26,6 +26,7 @@ lazy val generic = (project in file("."))
     genericDoobie,
     genericHttp4s.jvm,
     genericHttp4s.js,
+    genericCiris,
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -91,11 +92,23 @@ lazy val genericHttp4s = (crossProject(JSPlatform, JVMPlatform) in file("generic
     ),
   )
 
+lazy val genericCiris = (project in file("generic-ciris"))
+  .dependsOn(genericMapper.jvm)
+  .settings(commonSettings)
+  .settings(
+    name := "generic-ciris",
+    libraryDependencies ++= Seq(
+      ciris,
+    ),
+  )
+
 val catsVersion = "2.9.0"
 val doobieVersion = "1.0.0-RC2"
 val http4sVersion = "1.0.0-M32"
+val cirisVersion = "3.1.0"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
 val pekErrorVersion = "0.1.0-SNAPSHOT"
 
 val doobieCore = "org.tpolecat" %% "doobie-core" % doobieVersion
+val ciris = "is.cir" %% "ciris" % cirisVersion
