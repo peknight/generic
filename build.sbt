@@ -78,6 +78,7 @@ lazy val genericDoobie = (project in file("generic-doobie"))
     name := "generic-doobie",
     libraryDependencies ++= Seq(
       doobieCore,
+      pekErrorCore,
     ),
   )
 
@@ -99,6 +100,7 @@ lazy val genericCiris = (project in file("generic-ciris"))
     name := "generic-ciris",
     libraryDependencies ++= Seq(
       ciris,
+      pekErrorCore,
     ),
   )
 
@@ -112,3 +114,4 @@ val pekErrorVersion = "0.1.0-SNAPSHOT"
 
 val doobieCore = "org.tpolecat" %% "doobie-core" % doobieVersion
 val ciris = "is.cir" %% "ciris" % cirisVersion
+val pekErrorCore = "com.peknight" %% "error-core" % pekErrorVersion
