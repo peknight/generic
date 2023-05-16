@@ -23,10 +23,12 @@ lazy val generic = (project in file("."))
     genericScalaCheck.js,
     genericMapper.jvm,
     genericMapper.js,
-    genericDoobie,
+    genericDoobie.jvm,
+    genericDoobie.js,
     genericHttp4s.jvm,
     genericHttp4s.js,
-    genericCiris,
+    genericCiris.jvm,
+    genericCiris.js,
   )
   .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
@@ -71,14 +73,18 @@ lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic
     ),
   )
 
-lazy val genericDoobie = (project in file("generic-doobie"))
-  .dependsOn(genericMapper.jvm)
+lazy val genericDoobie = (crossProject(JSPlatform, JVMPlatform) in file("generic-doobie"))
+  .dependsOn(genericMapper)
   .settings(commonSettings)
   .settings(
     name := "generic-doobie",
     libraryDependencies ++= Seq(
+      "com.peknight" %%% "error-core" % pekErrorVersion,
+    ),
+  )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
       doobieCore,
-      pekErrorCore,
     ),
   )
 
@@ -93,14 +99,14 @@ lazy val genericHttp4s = (crossProject(JSPlatform, JVMPlatform) in file("generic
     ),
   )
 
-lazy val genericCiris = (project in file("generic-ciris"))
-  .dependsOn(genericMapper.jvm)
+lazy val genericCiris = (crossProject(JSPlatform, JVMPlatform) in file("generic-ciris"))
+  .dependsOn(genericMapper)
   .settings(commonSettings)
   .settings(
     name := "generic-ciris",
     libraryDependencies ++= Seq(
-      ciris,
-      pekErrorCore,
+      "is.cir" %%% "ciris" % cirisVersion,
+      "com.peknight" %%% "error-core" % pekErrorVersion,
     ),
   )
 
@@ -113,5 +119,3 @@ val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
 val pekErrorVersion = "0.1.0-SNAPSHOT"
 
 val doobieCore = "org.tpolecat" %% "doobie-core" % doobieVersion
-val ciris = "is.cir" %% "ciris" % cirisVersion
-val pekErrorCore = "com.peknight" %% "error-core" % pekErrorVersion
