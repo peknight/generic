@@ -30,7 +30,6 @@ lazy val generic = (project in file("."))
     genericCiris.jvm,
     genericCiris.js,
   )
-  .enablePlugins(JavaAppPackaging)
   .settings(commonSettings)
   .settings(
     name := "generic",
