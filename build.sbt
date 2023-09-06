@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.2.1"
+ThisBuild / scalaVersion := "3.3.0"
 
 ThisBuild / organization := "com.peknight"
 
@@ -109,10 +109,10 @@ lazy val genericCiris = (crossProject(JSPlatform, JVMPlatform) in file("generic-
     ),
   )
 
-val catsVersion = "2.9.0"
-val doobieVersion = "1.0.0-RC2"
+val catsVersion = "2.10.0"
+val doobieVersion = "1.0.0-RC4"
 val http4sVersion = "1.0.0-M32"
-val cirisVersion = "3.1.0"
+val cirisVersion = "3.2.0"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
 val pekErrorVersion = "0.1.0-SNAPSHOT"

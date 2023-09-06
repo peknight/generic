@@ -22,6 +22,7 @@ trait IdInstances2:
     def migrate(a: Repr): Id[A] = mirror.fromProduct(a)
   end given
 
+  //noinspection ConvertExpressionToSAM
   inline given[A <: Product, ALabels <: Tuple, ARepr <: Tuple, B, BLabels <: Tuple, BRepr <: Tuple,
     Common <: Tuple, Added <: Tuple, Unaligned <: Tuple](
     using
@@ -34,13 +35,15 @@ trait IdInstances2:
     monoid: Monoid[Added],
     prepend: Prepend.Aux[Added, Common, Unaligned],
     align: Align[Unaligned, Tuple.Zip[BLabels, BRepr]]
-  ): Migration[A, B] = (a: A) =>
-    bMirror.fromProduct(align(prepend(monoid.empty, inter(constValueTuple[ALabels].zip(Tuple.fromProductTyped(a)))))
-      .map[Second] {
-        [T] => (t: T) => t match
-          case (_, value) => value.asInstanceOf[Second[T]]
-      }
-    )
+  ): Migration[A, B] =
+    new Migration[A, B]:
+      def migrate(a: A): B =
+        bMirror.fromProduct(align(prepend(monoid.empty, inter(constValueTuple[ALabels].zip(Tuple.fromProductTyped(a)))))
+          .map[Second] {
+            [T] => (t: T) => t match
+              case (_, value) => value.asInstanceOf[Second[T]]
+          }
+        )
   end given
 
 end IdInstances2

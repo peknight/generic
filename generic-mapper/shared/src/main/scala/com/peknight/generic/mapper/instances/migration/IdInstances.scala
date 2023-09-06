@@ -9,6 +9,7 @@ import scala.compiletime.{constValue, constValueTuple}
 
 trait IdInstances extends IdInstances2:
 
+  //noinspection ConvertExpressionToSAM
   inline given [A <: Product, ALabels <: Tuple, ARepr <: Tuple, B, BLabels <: Tuple, BRepr <: Tuple,
     Common <: Tuple, Unaligned <: Tuple](
     using
@@ -16,12 +17,14 @@ trait IdInstances extends IdInstances2:
     bMirror: Mirror.Product.Labelled[B, BLabels, BRepr],
     inter: Intersection.Aux[Tuple.Zip[ALabels, ARepr], Tuple.Zip[BLabels, BRepr], Common],
     align: Align[Common, Tuple.Zip[BLabels, BRepr]]
-  ): Migration[A, B] = (a: A) =>
-    bMirror.fromProduct(align(inter(constValueTuple[ALabels].zip(Tuple.fromProductTyped(a))))
-      .map[Second] { [T] => (t: T) => t match
-        case (_, value) => value.asInstanceOf[Second[T]]
-      }
-    )
+  ): Migration[A, B] =
+    new Migration[A, B]:
+      def migrate(a: A): B =
+        bMirror.fromProduct(align(inter(constValueTuple[ALabels].zip(Tuple.fromProductTyped(a))))
+          .map[Second] { [T] => (t: T) => t match
+            case (_, value) => value.asInstanceOf[Second[T]]
+          }
+        )
   end given
 end IdInstances
 
