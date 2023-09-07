@@ -143,7 +143,7 @@ lazy val genericInstancesSquants = (crossProject(JSPlatform, JVMPlatform) in fil
 
 val catsVersion = "2.10.0"
 val doobieVersion = "1.0.0-RC4"
-val http4sVersion = "1.0.0-M32"
+val http4sVersion = "1.0.0-M34"
 val cirisVersion = "3.2.0"
 val squantsVersion = "1.8.3"
 val scalaCheckVersion = "1.17.0"
