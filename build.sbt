@@ -29,6 +29,7 @@ lazy val generic = (project in file("."))
     genericHttp4s.js,
     genericCiris.jvm,
     genericCiris.js,
+    genericInstances,
   )
   .settings(commonSettings)
   .settings(
@@ -109,10 +110,42 @@ lazy val genericCiris = (crossProject(JSPlatform, JVMPlatform) in file("generic-
     ),
   )
 
+lazy val genericInstances = (project in file("generic-instances"))
+  .aggregate(
+    genericInstancesTime.jvm,
+    genericInstancesTime.js,
+    genericInstancesSquants.jvm,
+    genericInstancesSquants.js,
+  )
+  .settings(commonSettings)
+  .settings(
+    name := "generic-instances",
+  )
+
+lazy val genericInstancesTime = (crossProject(JSPlatform, JVMPlatform) in file("generic-instances/time"))
+  .dependsOn(genericMapper)
+  .settings(commonSettings)
+  .settings(
+    name := "generic-instances-time",
+    libraryDependencies ++= Seq(
+    )
+  )
+
+lazy val genericInstancesSquants = (crossProject(JSPlatform, JVMPlatform) in file("generic-instances/squants"))
+  .dependsOn(genericMapper)
+  .settings(commonSettings)
+  .settings(
+    name := "generic-instances-squants",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "squants" % squantsVersion,
+    )
+  )
+
 val catsVersion = "2.10.0"
 val doobieVersion = "1.0.0-RC4"
 val http4sVersion = "1.0.0-M32"
 val cirisVersion = "3.2.0"
+val squantsVersion = "1.8.3"
 val scalaCheckVersion = "1.17.0"
 val pekCatsInstancesVersion = "0.1.0-SNAPSHOT"
 val pekErrorVersion = "0.1.0-SNAPSHOT"
