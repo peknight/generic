@@ -73,6 +73,16 @@ lazy val genericMapper = (crossProject(JSPlatform, JVMPlatform) in file("generic
     ),
   )
 
+lazy val genericCirce = (crossProject(JSPlatform, JVMPlatform) in file("generic-circe"))
+  .dependsOn(genericCore)
+  .settings(commonSettings)
+  .settings(
+    name := "generic-circe",
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core" % circeVersion,
+    ),
+  )
+
 lazy val genericDoobie = (crossProject(JSPlatform, JVMPlatform) in file("generic-doobie"))
   .dependsOn(genericMapper)
   .settings(commonSettings)
@@ -142,6 +152,7 @@ lazy val genericInstancesSquants = (crossProject(JSPlatform, JVMPlatform) in fil
   )
 
 val catsVersion = "2.10.0"
+val circeVersion = "0.14.6"
 val doobieVersion = "1.0.0-RC4"
 val http4sVersion = "1.0.0-M34"
 val cirisVersion = "3.2.0"
