@@ -6,6 +6,7 @@ import com.peknight.generic.tuple.syntax.{foldLeft, mapN}
 
 import scala.Tuple.Size
 import scala.compiletime.{constValue, constValueTuple, summonAll}
+import scala.quoted.{Expr, Quotes, Type, quotes}
 
 sealed trait Generic[A]:
   type Labels <: Tuple
@@ -13,6 +14,7 @@ sealed trait Generic[A]:
   def size: Int
   def label: String
   def labels: Labels
+  def defaults: Map[Repr, Option]
 end Generic
 
 object Generic:
@@ -21,7 +23,7 @@ object Generic:
   type Aux[A, Repr0 <: Tuple] = Generic[A] { type Repr = Repr0 }
 
   sealed abstract class Labelled[A, Labels0 <: Tuple, Repr0 <: Tuple](
-    val size: Int, val label: String, val labels: Labels0
+    val size: Int, val label: String, val labels: Labels0, val defaults: Map[Repr0, Option]
   )extends Generic[A]:
     type Labels = Labels0
     type Repr = Repr0
@@ -41,6 +43,7 @@ object Generic:
     def size: Int = generic.size
     def label: String = generic.label
     def labels: Labels = generic.labels
+    def defaults: Map[Repr, Option] = generic.defaults
     inline def derive(f: => Generic.Product.Instances[F, A] ?=> F[A], g: => Generic.Sum.Instances[F, A] ?=> F[A]): F[A] =
       inline this match
         case p: Generic.Product.Instances[F, A] => f(using p)
@@ -79,15 +82,16 @@ object Generic:
     type Aux[A, Repr0 <: Tuple] = Generic.Product[A] { type Repr = Repr0 }
 
     sealed abstract class Labelled[A, Labels <: Tuple, Repr <: Tuple](override val size: Int,
-      override val label: String, override val labels: Labels
-    ) extends Generic.Labelled[A, Labels, Repr](size, label, labels) with Generic.Product[A]
+      override val label: String, override val labels: Labels, override val defaults: Map[Repr, Option]
+    ) extends Generic.Labelled[A, Labels, Repr](size, label, labels, defaults) with Generic.Product[A]
 
     final class MirrorLabelled[A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
       mirror: Mirror.Product.Labelled[A, Labels, Repr],
       override val size: Int,
       override val label: String,
-      override val labels: Labels
-    ) extends Generic.Product.Labelled[A, Labels, Repr](size, label, labels):
+      override val labels: Labels,
+      override val defaults: Map[Repr, Option],
+    ) extends Generic.Product.Labelled[A, Labels, Repr](size, label, labels, defaults):
       def to(a: A): Repr = Tuple.fromProduct(a).asInstanceOf[Repr]
       def from(repr: Repr): A = mirror.fromProduct(repr)
     end MirrorLabelled
@@ -116,6 +120,25 @@ object Generic:
             val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
             f(instance, value, label).asInstanceOf[H[E]]
         }.asInstanceOf[Map[Repr, G]]
+      def construct(f: [T] => F[T] => T): A =
+        type H[E] = Any
+        from(instances.map[H]([E] => (ft: E) => f.asInstanceOf[Any => Any](ft.asInstanceOf[Any])).asInstanceOf[Repr])
+      def constructWithLabel(f: [T] => (F[T], String) => T): A =
+        type H[E] = Any
+        from(instances.zip(labels).map[H]([E] => (e: E) =>
+          f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)])
+        ).asInstanceOf[Repr])
+      def constructWithDefault(f: [T] => (F[T], Option[T]) => T): A =
+        type H[E] = Any
+        from(instances.zip(defaults).map[H]([E] => (e: E) =>
+          f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)])
+        ).asInstanceOf[Repr])
+      def constructWithLabelDefault(f: [T] => (F[T], String, Option[T]) => T): A =
+        type H[E] = Any
+        from(instances.zip(labels).zip(defaults).map[H] { [E] => (e: E) =>
+          val ((instance, label), defaultOpt) = e.asInstanceOf[((Any, Any), Any)]
+          f.asInstanceOf[(Any, Any, Any) => Any](instance, label, defaultOpt)
+        }.asInstanceOf[Repr])
       def foldLeft[B](a: A)(b: B)(f: [T] => (B, F[T], T) => B): B =
         instances.zip(to(a)).foldLeft[B](b) { [E] => (b: B, e: E) =>
           type U = E match { case (_, t) => t }
@@ -164,17 +187,19 @@ object Generic:
     sealed abstract class Labelled[A, Labels <: Tuple, Repr <: Tuple](
       override val size: Int,
       override val label: String,
-      override val labels: Labels
+      override val labels: Labels,
+      override val defaults: Map[Repr, Option]
     ) extends Generic.Labelled[A, Labels, Repr](
-      size, label, labels
+      size, label, labels, defaults
     ) with Generic.Sum[A]
 
     final class MirrorLabelled[A, Labels <: Tuple, Repr <: Tuple](
       mirror: Mirror.Sum.Labelled[A, Labels, Repr],
       override val size: Int,
       override val label: String,
-      override val labels: Labels
-    ) extends Generic.Sum.Labelled[A, Labels, Repr](size, label, labels):
+      override val labels: Labels,
+      override val defaults: Map[Repr, Option]
+    ) extends Generic.Sum.Labelled[A, Labels, Repr](size, label, labels, defaults):
       def ordinal(a: A): Int = mirror.ordinal(a)
     end MirrorLabelled
 
@@ -217,17 +242,38 @@ object Generic:
     end Instances
   end Sum
 
+  inline def getDefaults[T](inline s: Int): Tuple = ${ getDefaultsImpl[T]('s) }
+  def getDefaultsImpl[T](s: Expr[Int])(using Quotes, Type[T]): Expr[Tuple] =
+    import quotes.reflect.*
+    val n = s.asTerm.underlying.asInstanceOf[Literal].constant.value.asInstanceOf[Int]
+    val companion = TypeRepr.of[T].typeSymbol.companionModule
+    val expressions: List[Expr[Option[Any]]] = List.tabulate(n) { i =>
+      val termOpt = companion.declaredMethod(s"$$lessinit$$greater$$default$$${i + 1}").headOption.map { s =>
+        val select = Ref(companion).select(s)
+        TypeRepr.of[T].typeArgs match
+          case Nil => select
+          case typeArgs => select.appliedToTypes(typeArgs)
+      }
+      termOpt match
+        case None => Expr(None)
+        case Some(et) => '{ Some(${ et.asExpr }) }
+    }
+    Expr.ofTupleFromSeq(expressions)
+  end getDefaultsImpl
+
   inline given [A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Product.Labelled[A, Labels, Repr]
   ): Generic.Product.MirrorLabelled[A, Labels, Repr] =
-    new Generic.Product.MirrorLabelled[A, Labels, Repr](mirror, constValue[Size[Repr]], constValue[mirror.MirroredLabel],
-      constValueTuple[Labels])
+    val size = constValue[Size[Repr]]
+    new Generic.Product.MirrorLabelled[A, Labels, Repr](mirror, size, constValue[mirror.MirroredLabel],
+      constValueTuple[Labels], getDefaults(size).asInstanceOf[Map[Repr, Option]])
 
   inline given [A, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Sum.Labelled[A, Labels, Repr]
   ): Generic.Sum.MirrorLabelled[A, Labels, Repr] =
-    new Generic.Sum.MirrorLabelled[A, Labels, Repr](mirror, constValue[Size[Repr]], constValue[mirror.MirroredLabel],
-      constValueTuple[Labels])
+    val size = constValue[Size[Repr]]
+    new Generic.Sum.MirrorLabelled[A, Labels, Repr](mirror, size, constValue[mirror.MirroredLabel],
+      constValueTuple[Labels], getDefaults(size).asInstanceOf[Map[Repr, Option]])
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Product.Labelled[A, Labels, Repr])
   : Generic.Product.Instances.Labelled[F, A, Labels, Repr] =
