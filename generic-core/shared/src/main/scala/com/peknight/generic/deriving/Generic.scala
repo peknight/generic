@@ -2,7 +2,7 @@ package com.peknight.generic.deriving
 
 import cats.Applicative
 import com.peknight.generic.tuple.Map
-import com.peknight.generic.tuple.syntax.{foldLeft, mapN}
+import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN}
 
 import scala.Tuple.Size
 import scala.compiletime.{constValue, constValueTuple, summonAll}
@@ -15,6 +15,8 @@ sealed trait Generic[A]:
   def label: String
   def labels: Labels
   def defaults: Map[Repr, Option]
+  def isProduct: Boolean
+  def isSum: Boolean
 end Generic
 
 object Generic:
@@ -44,6 +46,8 @@ object Generic:
     def label: String = generic.label
     def labels: Labels = generic.labels
     def defaults: Map[Repr, Option] = generic.defaults
+    def isProduct: Boolean = generic.isProduct
+    def isSum: Boolean = generic.isSum
     inline def derive(f: => Generic.Product.Instances[F, A] ?=> F[A], g: => Generic.Sum.Instances[F, A] ?=> F[A]): F[A] =
       inline this match
         case p: Generic.Product.Instances[F, A] => f(using p)
@@ -74,6 +78,8 @@ object Generic:
   sealed trait Product[A] extends Generic[A]:
     def to(a: A): Repr
     def from(repr: Repr): A
+    def isProduct: Boolean = true
+    def isSum: Boolean = false
   end Product
 
   object Product:
@@ -120,25 +126,36 @@ object Generic:
             val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
             f(instance, value, label).asInstanceOf[H[E]]
         }.asInstanceOf[Map[Repr, G]]
-      def construct(f: [T] => F[T] => T): A =
+      def construct[G[_]: Applicative](f: [T] => F[T] => G[T]): G[A] =
         type H[E] = Any
-        from(instances.map[H]([E] => (ft: E) => f.asInstanceOf[Any => Any](ft.asInstanceOf[Any])).asInstanceOf[Repr])
-      def constructWithLabel(f: [T] => (F[T], String) => T): A =
+        instances.map[H]([E] => (ft: E) => f.asInstanceOf[Any => Any](ft.asInstanceOf[Any]))
+          .asInstanceOf[Map[Repr, G]]
+          .mapN(from)
+
+      def constructWithLabel[G[_]: Applicative](f: [T] => (F[T], String) => G[T]): G[A] =
         type H[E] = Any
-        from(instances.zip(labels).map[H]([E] => (e: E) =>
-          f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)])
-        ).asInstanceOf[Repr])
-      def constructWithDefault(f: [T] => (F[T], Option[T]) => T): A =
+        instances.zip(labels)
+          .map[H]([E] => (e: E) => f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)]))
+          .asInstanceOf[Map[Repr, G]]
+          .mapN(from)
+
+      def constructWithDefault[G[_]: Applicative](f: [T] => (F[T], Option[T]) => G[T]): G[A] =
         type H[E] = Any
-        from(instances.zip(defaults).map[H]([E] => (e: E) =>
-          f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)])
-        ).asInstanceOf[Repr])
-      def constructWithLabelDefault(f: [T] => (F[T], String, Option[T]) => T): A =
+        instances.zip(defaults)
+          .map[H]([E] => (e: E) => f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)]))
+          .asInstanceOf[Map[Repr, G]]
+          .mapN(from)
+
+      def constructWithLabelDefault[G[_]: Applicative](f: [T] => (F[T], String, Option[T]) => G[T]): G[A] =
         type H[E] = Any
-        from(instances.zip(labels).zip(defaults).map[H] { [E] => (e: E) =>
-          val ((instance, label), defaultOpt) = e.asInstanceOf[((Any, Any), Any)]
-          f.asInstanceOf[(Any, Any, Any) => Any](instance, label, defaultOpt)
-        }.asInstanceOf[Repr])
+        instances.zip(labels).zip(defaults)
+          .map[H] { [E] => (e: E) =>
+            val ((instance, label), defaultOpt) = e.asInstanceOf[((Any, Any), Any)]
+            f.asInstanceOf[(Any, Any, Any) => Any](instance, label, defaultOpt)
+          }
+          .asInstanceOf[Map[Repr, G]]
+          .mapN(from)
+
       def foldLeft[B](a: A)(b: B)(f: [T] => (B, F[T], T) => B): B =
         instances.zip(to(a)).foldLeft[B](b) { [E] => (b: B, e: E) =>
           type U = E match { case (_, t) => t }
@@ -151,6 +168,23 @@ object Generic:
           val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
           f(b, instance, value, label)
         }
+
+      def foldRight[B](a: A)(b: B)(f: [T] => (F[T], T, B) => B): B =
+        instances.zip(to(a)).foldRight[B](b) {
+          [E] => (e: E, b: B) =>
+            type U = E match {case (_, t) => t}
+            val (instance, value) = e.asInstanceOf[(F[U], U)]
+            f(instance, value, b)
+        }
+
+      def foldRightWithLabel[B](a: A)(b: B)(f: [T] => (F[T], T, String, B) => B): B =
+        instances.zip(to(a)).zip(labels).foldRight[B](b) {
+          [E] => (e: E, b: B) =>
+            type U = E match {case ((_, t), _) => t}
+            val ((instance, value), label) = e.asInstanceOf[((F[U], U), String)]
+            f(instance, value, label, b)
+        }
+
       def to(a: A): Repr = generic.to(a)
       def from(repr: Repr): A = generic.from(repr)
     end Instances
@@ -177,6 +211,8 @@ object Generic:
     def ordinal(a: A): Int
     def label(ord: Int): String = labels.productElement(ord).asInstanceOf[String]
     def label(a: A): String = label(ordinal(a))
+    def isProduct: Boolean = false
+    def isSum: Boolean = true
   end Sum
 
   object Sum:
@@ -222,6 +258,26 @@ object Generic:
       def ordinal(a: A): Int = generic.ordinal(a)
       def label(ord: Int): String = generic.label(ord)
       def label(a: A): String = generic.label(a)
+
+      def foldLeft[B](b: B)(f: [T] => (B, F[T]) => B): B =
+        instances.foldLeft[B](b)([E] => (b: B, e: E) => f.asInstanceOf[(B, Any) => B](b, e))
+      def foldLeftWithLabel[B](b: B)(f: [T] => (B, F[T], String) => B): B =
+        instances.zip(labels).foldLeft[B](b) {
+          [E] => (b: B, e: E) =>
+            val (instance, label) = e.asInstanceOf[(Any, String)]
+            f.asInstanceOf[(B, Any, String) => B](b, instance, label)
+        }
+
+      def foldRight[B](b: B)(f: [T] => (F[T], B) => B): B =
+        instances.foldRight[B](b)([E] => (e: E, b: B) => f.asInstanceOf[(Any, B) => B](e, b))
+
+      def foldRightWithLabel[B](b: B)(f: [T] => (F[T], String, B) => B): B =
+        instances.zip(labels).foldRight[B](b) {
+          [E] => (e: E, b: B) =>
+            type U = E match {case ((_, t), _) => t}
+            val (instance, label) = e.asInstanceOf[(Any, String)]
+            f.asInstanceOf[(Any, String, B) => B](instance, label, b)
+        }
     end Instances
 
     object Instances:

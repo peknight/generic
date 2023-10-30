@@ -23,6 +23,8 @@ lazy val generic = (project in file("."))
     genericScalaCheck.js,
     genericMapper.jvm,
     genericMapper.js,
+    genericCirce.jvm,
+    genericCirce.js,
     genericDoobie.jvm,
     genericDoobie.js,
     genericHttp4s.jvm,
