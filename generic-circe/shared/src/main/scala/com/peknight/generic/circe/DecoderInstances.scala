@@ -11,94 +11,95 @@ import io.circe.derivation.Configuration
 
 trait DecoderInstances:
 
-  trait ConfiguredDecoder[A] extends Decoder[A]:
-    def configuration: Configuration
-    def instances: Generic.Instances[Decoder, A]
-  end ConfiguredDecoder
-
-  inline given derived[A](using configuration: Configuration, instances: => Generic.Instances[Decoder, A])
+  inline given derivedDecoder[A](using configuration: Configuration, instances: => Generic.Instances[Decoder, A])
   : Exported[Decoder[A]] =
-    Exported(derivedConfigured(configuration)(using instances))
+    Exported(DecoderInstances.derived(configuration)(using instances))
+end DecoderInstances
+object DecoderInstances extends DecoderInstances:
 
-  inline final def derivedConfigured[A](configuration: Configuration = Configuration.default)
-                                       (using instances: => Generic.Instances[Decoder, A]): Decoder[A] =
+  inline def derived[A](configuration: Configuration = Configuration.default)
+                       (using instances: => Generic.Instances[Decoder, A]): Decoder[A] =
     instances.derive(
-      inst ?=> derivedConfiguredProduct[A](configuration, inst),
-      inst ?=> derivedConfiguredSum[A](configuration, inst)
+      inst ?=> derivedProduct[A](configuration, inst),
+      inst ?=> derivedSum[A](configuration, inst)
     )
 
   private[this] def strictDecodingFailure(c: HCursor, name: String, message: String): DecodingFailure =
     DecodingFailure(s"Strict decoding $name - $message", c.history)
   end strictDecodingFailure
 
-  private[this] inline final def derivedConfiguredProduct[A](configuration0: Configuration,
-                                                             instances0: => Generic.Product.Instances[Decoder, A])
-  : Decoder[A] =
-    new ConfiguredDecoder[A]:
-      def configuration: Configuration = configuration0
-      def instances: Generic.Instances[Decoder, A] = instances0
-      def apply(c: HCursor): Result[A] =
-        decodeProduct[Result, A](
-          c,
-          Left.apply,
-          (unexpectedFields, expectedFields) => Left(strictDecodingFailure(c, instances.label,
-            s"unexpected fields: ${unexpectedFields.mkString(", ")}; valid fields: ${expectedFields.mkString(", ")}."
-          )),
-          [T] => (decoder: Decoder[T]) => decoder.tryDecode,
-          [T] => (result: Result[T]) => result.isRight,
-          [T] => (result: Result[T]) => DecoderOps.isKeyMissingNone(result),
-          configuration0,
-          instances0
-        )
+  private[this] def derivedProduct[A](configuration: Configuration,
+                                      instances: => Generic.Product.Instances[Decoder, A]): Decoder[A] =
+    new Decoder[A]:
+      def apply(c: HCursor): Result[A] = decodeProductResult(c, configuration, instances)
       override def decodeAccumulating(c: HCursor): AccumulatingResult[A] =
-        decodeProduct[AccumulatingResult, A](
-          c,
-          Validated.invalidNel,
-          (unexpectedFields, expectedFields) => Validated.invalid(NonEmptyList.fromListUnsafe(unexpectedFields
-            .map(field => strictDecodingFailure(c, instances.label,
-              s"unexpected field: $field; valid fields: ${expectedFields.mkString(", ")}."
-            )))),
-          [T] => (decoder: Decoder[T]) => decoder.tryDecodeAccumulating,
-          [T] => (result: AccumulatingResult[T]) => result.isValid,
-          [T] => (result: AccumulatingResult[T]) => DecoderOps.isKeyMissingNoneAccumulating(result),
-          configuration0,
-          instances0
-        )
-  end derivedConfiguredProduct
+        decodeProductAccumulating(c, configuration, instances)
+  end derivedProduct
 
-  private[this] inline final def derivedConfiguredSum[A](configuration0: Configuration,
-                                                         instances0: => Generic.Sum.Instances[Decoder, A])
-  : Decoder[A] =
-    new ConfiguredDecoder[A]:
+  private[this] def derivedSum[A](configuration0: Configuration,
+                                  instances: => Generic.Sum.Instances[Decoder, A]): Decoder[A] =
+    new ConfiguredSumDecoder[A]:
       def configuration: Configuration = configuration0
-      def instances: Generic.Instances[Decoder, A] = instances0
-      def apply(c: HCursor): Result[A] =
-        decodeSum[Result, A](c, Left.apply, _.tryDecode, configuration0, instances0)
+      def decoders: Generic.Sum.Instances[Decoder, A] = instances
+      def apply(c: HCursor): Result[A] = decodeSumResult(c, configuration0, instances)
       override def decodeAccumulating(c: HCursor): AccumulatingResult[A] =
-        decodeSum[AccumulatingResult, A](c, Validated.invalidNel, _.tryDecodeAccumulating, configuration0, instances0)
-  end derivedConfiguredSum
+        decodeSumAccumulating(c, configuration0, instances)
+  end derivedSum
 
+  private[circe] def decodeProductResult[A](c: HCursor, configuration: Configuration,
+                                            instances: => Generic.Product.Instances[Decoder, A]): Result[A] =
+    decodeProduct[Result, A](
+      c,
+      Left.apply,
+      (unexpectedFields, expectedFields) => Left(strictDecodingFailure(c, instances.label,
+        s"unexpected fields: ${unexpectedFields.mkString(", ")}; valid fields: ${expectedFields.mkString(", ")}."
+      )),
+      [T] => (decoder: Decoder[T]) => decoder.tryDecode,
+      [T] => (result: Result[T]) => result.isRight,
+      [T] => (result: Result[T]) => DecoderOps.isKeyMissingNone(result),
+      configuration,
+      instances
+    )
 
-  private[this] def decodeProduct[F[_]: Applicative, A](
-                                                         c: HCursor,
-                                                         fail: DecodingFailure => F[A],
-                                                         strictFail: (List[String], IndexedSeq[String]) => F[A],
-                                                         decode: [T] => Decoder[T] => ACursor => F[T],
-                                                         isFailed: [T] => F[T] => Boolean,
-                                                         isKeyMissingNone: [T] => F[T] => Boolean,
-                                                         configuration: Configuration,
-                                                         instances: => Generic.Product.Instances[Decoder, A]
-                                                      ): F[A] =
+  private[circe] def decodeProductAccumulating[A](c: HCursor, configuration: Configuration,
+                                                  instances: => Generic.Product.Instances[Decoder, A])
+  : AccumulatingResult[A] =
+    decodeProduct[AccumulatingResult, A](
+      c,
+      Validated.invalidNel,
+      (unexpectedFields, expectedFields) => Validated.invalid(NonEmptyList.fromListUnsafe(unexpectedFields
+        .map(field => strictDecodingFailure(c, instances.label,
+          s"unexpected field: $field; valid fields: ${expectedFields.mkString(", ")}."
+        )))),
+      [T] => (decoder: Decoder[T]) => decoder.tryDecodeAccumulating,
+      [T] => (result: AccumulatingResult[T]) => result.isValid,
+      [T] => (result: AccumulatingResult[T]) => DecoderOps.isKeyMissingNoneAccumulating(result),
+      configuration,
+      instances
+    )
+
+  private[this] def decodeProduct[F[_] : Applicative, A](
+                                                          c: HCursor,
+                                                          fail: DecodingFailure => F[A],
+                                                          strictFail: (List[String], IndexedSeq[String]) => F[A],
+                                                          decode: [T] => Decoder[T] => ACursor => F[T],
+                                                          isFailed: [T] => F[T] => Boolean,
+                                                          isKeyMissingNone: [T] => F[T] => Boolean,
+                                                          configuration: Configuration,
+                                                          instances: => Generic.Product.Instances[Decoder, A]
+                                                        ): F[A] =
     def go: F[A] =
-      instances.constructWithLabelDefault[F] { [T] => (decoder: Decoder[T], label: String, defaultOpt: Option[T]) =>
-        val cursor: ACursor = c.downField(configuration.transformMemberNames(label))
-        val result: F[T] = decode(decoder)(cursor)
-        defaultOpt.fold(result) { defaultValue =>
-          if isFailed(result) && !isKeyMissingNone(result) then result
-          else if !isFailed(result) && cursor.succeeded && !cursor.focus.exists(_.isNull) then result
-          else Applicative[F].pure(defaultValue)
-        }
+      instances.constructWithLabelDefault[F] {
+        [T] => (decoder: Decoder[T], label: String, defaultOpt: Option[T]) =>
+          val cursor: ACursor = c.downField(configuration.transformMemberNames(label))
+          val result: F[T] = decode(decoder)(cursor)
+          defaultOpt.fold(result) { defaultValue =>
+            if isFailed(result) && !isKeyMissingNone(result) then result
+            else if !isFailed(result) && cursor.succeeded && !cursor.focus.exists(_.isNull) then result
+            else Applicative[F].pure(defaultValue)
+          }
       }
+
     c.value.isObject match
       case false => fail(DecodingFailure(WrongTypeExpectation("object", c.value), c.history))
       case true if !configuration.strictDecoding => go
@@ -111,26 +112,36 @@ trait DecoderInstances:
         else go
   end decodeProduct
 
-  private[this] def decodeSum[F[_]: Applicative, A](
-                                                    c: HCursor,
-                                                    fail: DecodingFailure => F[A],
-                                                    decode: Decoder[A] => ACursor => F[A],
-                                                    configuration: Configuration,
-                                                    instances: => Generic.Sum.Instances[Decoder, A]
-                                                   ): F[A] =
+  private[circe] def decodeSumResult[A](c: HCursor, configuration: Configuration,
+                                        instances: => Generic.Sum.Instances[Decoder, A]): Result[A] =
+    decodeSum[Result, A](c, Left.apply, _.tryDecode, configuration, instances)
+
+  private[circe] def decodeSumAccumulating[A](c: HCursor, configuration: Configuration,
+                                              instances: => Generic.Sum.Instances[Decoder, A]): AccumulatingResult[A] =
+    decodeSum[AccumulatingResult, A](c, Validated.invalidNel, _.tryDecodeAccumulating, configuration, instances)
+
+  private[this] def decodeSum[F[_] : Applicative, A](
+                                                      c: HCursor,
+                                                      fail: DecodingFailure => F[A],
+                                                      decode: Decoder[A] => ACursor => F[A],
+                                                      configuration: Configuration,
+                                                      instances: => Generic.Sum.Instances[Decoder, A]
+                                                    ): F[A] =
     def decodersDict(conf: Configuration, inst: => Generic.Sum.Instances[Decoder, A]): Map[String, Decoder[?]] =
       inst.foldRightWithLabel(Map.empty[String, Decoder[?]]) {
         [T] => (decoder: Decoder[T], label: String, map: Map[String, Decoder[?]]) =>
           decoder match
-            case d: ConfiguredDecoder[?] if d.instances.isSum =>
-              map ++ decodersDict(d.configuration, d.instances.asInstanceOf[Generic.Sum.Instances[Decoder, A]])
+            case d: ConfiguredSumDecoder[?] =>
+              map ++ decodersDict(d.configuration, d.decoders.asInstanceOf[Generic.Sum.Instances[Decoder, A]])
             case _ => map + (conf.transformConstructorNames(label) -> decoder)
       }
+
     def fromName(sumTypeName: String, cursor: ACursor): F[A] =
       decodersDict(configuration, instances).get(sumTypeName)
         .fold(fail(DecodingFailure(s"type ${instances.label} has no class/object/case '$sumTypeName'.", cursor.history))) {
           decoder => decode(decoder.asInstanceOf[Decoder[A]])(cursor)
         }
+
     configuration.discriminator match
       case Some(discriminator) =>
         val cursor = c.downField(discriminator)
@@ -157,6 +168,4 @@ trait DecoderInstances:
                 ))
               else fromName(sumTypeName, c.downField(sumTypeName))
   end decodeSum
-
 end DecoderInstances
-object DecoderInstances extends DecoderInstances
