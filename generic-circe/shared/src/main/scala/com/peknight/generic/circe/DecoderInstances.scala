@@ -93,7 +93,7 @@ object DecoderInstances extends DecoderInstances:
         [T] => (decoder: Decoder[T], label: String, defaultOpt: Option[T]) =>
           val cursor: ACursor = c.downField(configuration.transformMemberNames(label))
           val result: F[T] = decode(decoder)(cursor)
-          defaultOpt.fold(result) { defaultValue =>
+          defaultOpt.filter(_ => configuration.useDefaults).fold(result) { defaultValue =>
             if isFailed(result) && !isKeyMissingNone(result) then result
             else if !isFailed(result) && cursor.succeeded && !cursor.focus.exists(_.isNull) then result
             else Applicative[F].pure(defaultValue)
