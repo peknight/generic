@@ -20,14 +20,12 @@ object EncoderInstances extends EncoderInstances:
 
   private[this] final def derivedProduct[A](configuration: Configuration,
                                             instances: => Generic.Product.Instances[Encoder, A]): Encoder.AsObject[A] =
-    new Encoder.AsObject[A]:
-      def encodeObject(a: A): JsonObject = encodeProduct(a, configuration, instances)
+    (a: A) => encodeProduct(a, configuration, instances)
   end derivedProduct
 
   private[this] final def derivedSum[A](configuration: Configuration,
                                         instances: => Generic.Sum.Instances[Encoder, A]): Encoder.AsObject[A] =
-    new ConfiguredSumEncoder[A]:
-      def encodeObject(a: A): JsonObject = encodeSum(a, configuration, instances)
+    (a: A) => encodeSum(a, configuration, instances)
   end derivedSum
 
   private[circe] def encodeProduct[A](a: A, configuration: Configuration,
