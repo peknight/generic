@@ -1,0 +1,4 @@
+package com.peknight.generic.migration.instances
+
+trait MigrationInstances extends MigrationIsomorphismInstances with MigrationIdInstances
+object MigrationInstances extends MigrationInstances

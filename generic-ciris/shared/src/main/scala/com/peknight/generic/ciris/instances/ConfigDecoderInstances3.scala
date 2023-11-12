@@ -1,7 +1,7 @@
 package com.peknight.generic.ciris.instances
 
 import ciris.{ConfigDecoder, ConfigError}
-import com.peknight.error.std.Error
+import com.peknight.error.Error
 import com.peknight.generic.mapper.MigrationT
 
 import scala.concurrent.duration.{Duration, FiniteDuration}

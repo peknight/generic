@@ -1,7 +1,7 @@
 package com.peknight.generic.mapper.instances.updater
 
 import cats.Id
-import com.peknight.generic.deriving.Mirror
+import com.peknight.generic.Mirror
 import com.peknight.generic.mapper.Updater
 import com.peknight.generic.tuple.ops.Remove
 

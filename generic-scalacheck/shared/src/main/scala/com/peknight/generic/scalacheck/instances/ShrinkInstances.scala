@@ -1,9 +1,9 @@
 package com.peknight.generic.scalacheck.instances
 
 import cats.Id
-import com.peknight.generic.deriving.Generic
+import com.peknight.generic.Generic
+import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{forall, unzip}
-import com.peknight.generic.tuple.{Head, Map, Second}
 import org.scalacheck.Shrink
 
 import scala.Tuple.Zip
@@ -12,7 +12,7 @@ import scala.Tuple.Zip
 //noinspection ScalaDeprecation
 trait ShrinkInstances:
 
-  inline given [A](using instances: => Generic.Instances[Shrink, A]): Shrink[A] = instances.derive(
+  given [A](using instances: => Generic.Instances[Shrink, A]): Shrink[A] = instances.derive(
     inst ?=> Shrink[A] { (a: A) =>
       type Repr = inst.Repr
       val streamTuple: Map[Repr, Stream] = inst.map[Stream](a)(

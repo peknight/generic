@@ -1,6 +1,6 @@
 package com.peknight.generic.http4s.instances
 
-import com.peknight.error.std.Error
+import com.peknight.error.Error
 import com.peknight.generic.mapper.MigrationT
 import org.http4s.{ParseFailure, QueryParamDecoder, Uri}
 

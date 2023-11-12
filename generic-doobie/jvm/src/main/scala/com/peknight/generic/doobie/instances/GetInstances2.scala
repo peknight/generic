@@ -1,7 +1,7 @@
 package com.peknight.generic.doobie.instances
 
 import cats.Show
-import com.peknight.error.std.Error
+import com.peknight.error.Error
 import com.peknight.generic.mapper.MigrationT
 import doobie.{Get, Meta}
 import org.tpolecat.typename.TypeName

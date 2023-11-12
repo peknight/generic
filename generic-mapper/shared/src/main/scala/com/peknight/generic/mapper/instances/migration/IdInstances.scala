@@ -1,6 +1,6 @@
 package com.peknight.generic.mapper.instances.migration
 
-import com.peknight.generic.deriving.Mirror
+import com.peknight.generic.Mirror
 import com.peknight.generic.mapper.Migration
 import com.peknight.generic.tuple.*
 import com.peknight.generic.tuple.ops.*

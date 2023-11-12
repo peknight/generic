@@ -1,7 +1,7 @@
 package com.peknight.generic.tuple
 
 import cats.syntax.option.*
-import com.peknight.generic.deriving.IceCream
+import com.peknight.generic.scalacheck.IceCream
 import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck.{Prop, Properties}

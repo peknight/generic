@@ -1,7 +1,7 @@
 package com.peknight.generic.mapper.instances.selector
 
 import cats.Id
-import com.peknight.generic.deriving.Mirror
+import com.peknight.generic.Mirror
 import com.peknight.generic.mapper.Selector
 import com.peknight.generic.tuple.ops.Selector as TupleSelector
 
