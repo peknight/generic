@@ -6,7 +6,8 @@ import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN}
 
 import scala.Tuple.Size
-import scala.compiletime.{constValue, constValueTuple, summonAll}
+import scala.compiletime.{constValue, constValueTuple, summonAll, erasedValue, summonInline, summonFrom}
+import scala.deriving.Mirror as SMirror
 
 sealed trait Generic[A]:
   type Labels <: Tuple
@@ -17,6 +18,7 @@ sealed trait Generic[A]:
   def defaults: Map[Repr, Option]
   def isProduct: Boolean
   def isSum: Boolean
+  def isEnum: Boolean
 end Generic
 
 object Generic:
@@ -80,6 +82,7 @@ object Generic:
     def from(repr: Repr): A
     def isProduct: Boolean = true
     def isSum: Boolean = false
+    def isEnum: Boolean = false
   end Product
 
   object Product:
@@ -216,6 +219,7 @@ object Generic:
     def label(a: A): String = label(ordinal(a))
     def isProduct: Boolean = false
     def isSum: Boolean = true
+    def isEnum: Boolean = false
   end Sum
 
   object Sum:
@@ -308,6 +312,34 @@ object Generic:
     end Instances
   end Sum
 
+  sealed trait Enum[A] extends Generic.Sum[A]:
+    def values: Repr
+    override def isEnum: Boolean = true
+  end Enum
+  object Enum:
+    def apply[A](using generic: Generic.Enum[A]): Generic.Enum[A] = generic
+    type Aux[A, Repr0 <: Tuple] = Generic.Enum[A] { type Repr = Repr0 }
+    final class MirrorLabelled[A, Labels <: Tuple, Repr <: Tuple](
+      mirror: Mirror.Sum.Labelled[A, Labels, Repr],
+      values: Repr,
+      override val size: Int,
+      override val label: String,
+      override val labels: Labels,
+      override val defaults: Map[Repr, Option]
+    ) extends Generic.Sum.Labelled[A, Labels, Repr](size, label, labels, defaults):
+      def ordinal(a: A): Int = mirror.ordinal(a)
+  end Enum
+
+  inline def singletons[T <: Tuple]: Option[T] =
+    inline erasedValue[T] match
+      case _: EmptyTuple => Some(EmptyTuple).asInstanceOf
+      case _: (h *: t) =>
+        summonFrom[Option[T]] {
+          case m @ given Mirror.Singleton[h] => singletons[t].map(m.fromProduct(EmptyTuple) *: _).asInstanceOf
+          case _ => None
+        }
+  end singletons
+
   inline given [A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Product.Labelled[A, Labels, Repr]
   ): Generic.Product.MirrorLabelled[A, Labels, Repr] =
@@ -317,10 +349,15 @@ object Generic:
 
   inline given [A, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Sum.Labelled[A, Labels, Repr]
-  ): Generic.Sum.MirrorLabelled[A, Labels, Repr] =
+  ): Generic.Sum.Labelled[A, Labels, Repr] =
     val size = constValue[Size[Repr]]
-    new Generic.Sum.MirrorLabelled[A, Labels, Repr](mirror, size, constValue[mirror.MirroredLabel],
-      constValueTuple[Labels], Default.getDefaults[A](size).asInstanceOf[Map[Repr, Option]])
+    val label = constValue[mirror.MirroredLabel]
+    val labels = constValueTuple[Labels]
+    val defaults = Default.getDefaults[A](size).asInstanceOf[Map[Repr, Option]]
+    singletons[Repr] match
+      case Some(values) =>
+        new Generic.Enum.MirrorLabelled[A, Labels, Repr](mirror, values, size, label, labels, defaults)
+      case None => new Generic.Sum.MirrorLabelled[A, Labels, Repr](mirror, size, label, labels, defaults)
 
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Product.Labelled[A, Labels, Repr])
   : Generic.Product.Instances.Labelled[F, A, Labels, Repr] =
@@ -329,4 +366,5 @@ object Generic:
   inline given [F[_], A, Labels <: Tuple, Repr <: Tuple](using generic: Generic.Sum.Labelled[A, Labels, Repr])
   : Generic.Sum.Instances.Labelled[F, A, Labels, Repr] =
     new Generic.Sum.Instances.Labelled[F, A, Labels, Repr](generic, () => summonAll[Map[Repr, F]])
+
 end Generic

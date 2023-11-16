@@ -81,4 +81,9 @@ object Mirror:
       : Mirror.Sum.Labelled[A, Labels, Repr] = mirror
     end Labelled
   end Sum
+
+  type Singleton[A] = SMirror.Singleton {
+    type MirroredMonoType = A
+    type MirroredType = A
+  }
 end Mirror
