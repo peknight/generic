@@ -6,8 +6,7 @@ import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN}
 
 import scala.Tuple.Size
-import scala.compiletime.{constValue, constValueTuple, summonAll, erasedValue, summonInline, summonFrom}
-import scala.deriving.Mirror as SMirror
+import scala.compiletime.{constValue, constValueTuple, summonAll, erasedValue, summonFrom}
 
 sealed trait Generic[A]:
   type Labels <: Tuple
