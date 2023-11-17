@@ -1,14 +1,13 @@
 package com.peknight.generic
 
 import cats.Applicative
-import com.peknight.generic.compiletime.summonOptionTuple
+import com.peknight.generic.compiletime.summonSingletons
 import com.peknight.generic.defaults.Default
 import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN}
 
 import scala.Tuple.Size
-import scala.compiletime.*
-import scala.deriving.Mirror as SMirror
+import scala.compiletime.{constValue, constValueTuple, summonAll}
 
 sealed trait Generic[A]:
   type Labels <: Tuple
@@ -316,11 +315,6 @@ object Generic:
       end Labelled
     end Instances
   end Sum
-
-  inline def summonSingletons[T <: Tuple]: Map[T, Option] =
-    summonOptionTuple[Mirror.Product, T].map[[_] =>> Any]([T] => (t: T) =>
-      t.asInstanceOf[Option[SMirror.Product]].filter(_.isInstanceOf[SMirror.Singleton]).map(_.fromProduct(EmptyTuple))
-    ).asInstanceOf[Map[T, Option]]
 
   inline given [A <: scala.Product, Labels <: Tuple, Repr <: Tuple](
     using mirror: Mirror.Product.Labelled[A, Labels, Repr]
