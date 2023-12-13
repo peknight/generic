@@ -139,6 +139,13 @@ object Generic:
           .asInstanceOf[Map[Repr, G]]
           .mapN(from)
 
+      def constructWithIndex[G[_] : Applicative](f: [T] => (F[T], Int) => G[T]): G[A] =
+        instances.foldRight[(Tuple, Int)]((EmptyTuple, size - 1)) { [X] => (ft: X, acc: (Tuple, Int)) =>
+          val accTuple: Tuple = acc._1
+          val index: Int = acc._2
+          (f.asInstanceOf[(Any, Any) => Any](ft, index) *: accTuple, index - 1).asInstanceOf[(Tuple, Int)]
+        }.asInstanceOf[Map[Repr, G]].mapN(from)
+
       def constructWithLabel[G[_]: Applicative](f: [T] => (F[T], String) => G[T]): G[A] =
         instances.zip(labels)
           .map[[_] =>> Any]([E] => (e: E) => f.asInstanceOf[(Any, Any) => Any].tupled(e.asInstanceOf[(Any, Any)]))
