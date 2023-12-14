@@ -1,5 +1,8 @@
 package com.peknight.generic
 
+import scala.Tuple.Size
+import scala.compiletime.ops.int.-
+
 package object tuple:
   type Head[A] = A match {case h *: _ => h}
   type Second[A] = A match {case _ *: s *: _ => s}
@@ -13,6 +16,10 @@ package object tuple:
   type Reverse[T <: Tuple] <: Tuple =
     T match
       case h *: t => Tuple.Append[Reverse[t], h]
+      case _ => EmptyTuple
+  type ZipWithIndex[T <: Tuple] <: Tuple =
+    T match
+      case h *: t => (h, Size[T] - Size[t] - 1) *: ZipWithIndex[t]
       case _ => EmptyTuple
   type Typed[T <: Tuple, A] = T match
     case A *: t => Typed[t, A]

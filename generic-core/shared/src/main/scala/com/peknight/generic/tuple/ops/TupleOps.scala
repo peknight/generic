@@ -1,7 +1,7 @@
 package com.peknight.generic.tuple.ops
 
 import cats.{Applicative, Eval, Functor, Id, Semigroupal}
-import com.peknight.generic.tuple.{Map, Reverse}
+import com.peknight.generic.tuple.{Map, Reverse, ZipWithIndex}
 
 import scala.Tuple.{Last, Zip}
 import scala.annotation.tailrec
@@ -77,6 +77,11 @@ object TupleOps:
 
   def mapN[T <: Tuple, G[_] : Applicative, Z](tuple: Map[T, G])(f: T => Z): G[Z] =
     Applicative[G].map(sequence(tuple))(f)
+
+  def zipWithIndex[T <: Tuple](tuple: T): ZipWithIndex[T] =
+    reverse(foldLeft[(Tuple, Int)](tuple, (EmptyTuple, 0)) { [A] => (acc: (Tuple, Int), a: A) =>
+      ((a, acc._2) *: acc._1, acc._2 + 1)
+    }._1).asInstanceOf[ZipWithIndex[T]]
 
   def unzip[T <: Tuple, U <: Tuple](tuple: Zip[T, U]): (T, U) =
     foldRight[(Tuple, Tuple)](tuple, (EmptyTuple, EmptyTuple)){ [A] => (a: A, b: (Tuple, Tuple)) =>

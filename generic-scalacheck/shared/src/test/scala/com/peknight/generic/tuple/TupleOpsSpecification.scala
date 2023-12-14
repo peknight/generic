@@ -49,6 +49,12 @@ class TupleOpsSpecification extends Properties("TupleOps"):
     (a, b, c).reverse == (c, b, a)
   }
 
+  property("zipWithIndex") = forAll {
+    (a: String, b: Int, c: Boolean) =>
+      import com.peknight.generic.tuple.syntax.zipWithIndex
+      (a, b, c).zipWithIndex == ((a, 0), (b, 1), (c, 2))
+  }
+
   property("mkString(start, sep, end)") = forAll {
     (a: String, b: Int, c: Boolean, start: String, sep: String, end: String) =>
       import com.peknight.generic.tuple.syntax.mkString

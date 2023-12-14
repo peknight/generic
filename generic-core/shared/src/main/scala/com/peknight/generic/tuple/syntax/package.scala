@@ -2,7 +2,7 @@ package com.peknight.generic.tuple
 
 import cats.{Applicative, Eval, Functor, Semigroupal}
 import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
-import com.peknight.generic.tuple.{LabelledTuple, LabelledValue, Map, Reverse}
+import com.peknight.generic.tuple.{LabelledTuple, LabelledValue, Map, Reverse, ZipWithIndex}
 
 import scala.Tuple.Zip
 
@@ -31,6 +31,7 @@ package object syntax:
 
     def exists(f: [A] => A => Boolean): Boolean = TupleOps.exists(tuple)(f)
 
+    def zipWithIndex: ZipWithIndex[T] = TupleOps.zipWithIndex(tuple)
     def mkString(start: String, sep: String, end: String): String = TupleOps.mkString(tuple, start, sep, end)
 
     def mkString(sep: String): String = TupleOps.mkString(tuple, sep)

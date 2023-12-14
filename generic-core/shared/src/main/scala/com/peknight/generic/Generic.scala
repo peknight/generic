@@ -4,7 +4,7 @@ import cats.Applicative
 import com.peknight.generic.compiletime.summonSingletons
 import com.peknight.generic.defaults.Default
 import com.peknight.generic.tuple.Map
-import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN}
+import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN, zipWithIndex}
 
 import scala.Tuple.Size
 import scala.compiletime.{constValue, constValueTuple, summonAll}
@@ -140,10 +140,10 @@ object Generic:
           .mapN(from)
 
       def constructWithIndex[G[_] : Applicative](f: [T] => (F[T], Int) => G[T]): G[A] =
-        instances.foldRight[(Tuple, Int)]((EmptyTuple, size - 1)) { [X] => (ft: X, acc: (Tuple, Int)) =>
-          val accTuple: Tuple = acc._1
-          val index: Int = acc._2
-          (f.asInstanceOf[(Any, Any) => Any](ft, index) *: accTuple, index - 1).asInstanceOf[(Tuple, Int)]
+
+        instances.zipWithIndex.map[[_] =>> Any] { [E] => (e: E) =>
+          val (ft, index) = e.asInstanceOf[(Any, Any)]
+          f.asInstanceOf[(Any, Any) => Any](ft, index)
         }.asInstanceOf[Map[Repr, G]].mapN(from)
 
       def constructWithLabel[G[_]: Applicative](f: [T] => (F[T], String) => G[T]): G[A] =
