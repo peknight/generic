@@ -5,7 +5,6 @@ import cats.data.Kleisli
 import cats.syntax.applicative.*
 import com.peknight.generic.Mirror
 import com.peknight.generic.migration.instances.MigrationInstances
-import com.peknight.generic.migration.{Isomorphism, Migration}
 import com.peknight.generic.tuple.Second
 import com.peknight.generic.tuple.ops.{Align, Intersection}
 
@@ -18,6 +17,10 @@ trait Migration[F[_], -A, B]:
 end Migration
 object Migration extends MigrationInstances:
   def apply[F[_], A, B](f: A => F[B]): Migration[F, A, B] = f(_)
+
+  given [F[_]: Applicative, A]: Migration[F, A, A] with
+    def migrate(a: A): F[A] = a.pure[F]
+  end given
 
   given [F[_], A, B](using iso: Isomorphism[F, A, B]): Migration[F, A, B] with
     def migrate(a: A): F[B] = iso.to(a)
