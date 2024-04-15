@@ -25,7 +25,6 @@ lazy val generic = (project in file("."))
     genericMigration.js,
     genericMonocle.jvm,
     genericMonocle.js,
-    genericInstances,
   )
   .settings(commonSettings)
   .settings(
@@ -88,40 +87,8 @@ lazy val genericMonocle = (crossProject(JSPlatform, JVMPlatform) in file("generi
     ),
   )
 
-lazy val genericInstances = (project in file("generic-instances"))
-  .aggregate(
-    genericInstancesTime.jvm,
-    genericInstancesTime.js,
-    genericInstancesSquants.jvm,
-    genericInstancesSquants.js,
-  )
-  .settings(commonSettings)
-  .settings(
-    name := "generic-instances",
-  )
-
-lazy val genericInstancesTime = (crossProject(JSPlatform, JVMPlatform) in file("generic-instances/time"))
-  .dependsOn(genericMigration)
-  .settings(commonSettings)
-  .settings(
-    name := "generic-instances-time",
-    libraryDependencies ++= Seq(
-    )
-  )
-
-lazy val genericInstancesSquants = (crossProject(JSPlatform, JVMPlatform) in file("generic-instances/squants"))
-  .dependsOn(genericMigration)
-  .settings(commonSettings)
-  .settings(
-    name := "generic-instances-squants",
-    libraryDependencies ++= Seq(
-      "org.typelevel" %%% "squants" % squantsVersion,
-    )
-  )
-
 val catsVersion = "2.10.0"
 val monocleVersion = "3.2.0"
-val squantsVersion = "1.8.3"
 val scalaCheckVersion = "1.17.0"
 val pekVersion = "0.1.0-SNAPSHOT"
 val pekCatsInstancesVersion = pekVersion
