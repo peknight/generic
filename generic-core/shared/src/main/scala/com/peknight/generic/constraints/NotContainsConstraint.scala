@@ -14,6 +14,6 @@ private[generic] object NotContainsConstraint:
 
   given [U]: NotContainsConstraint[EmptyTuple, U] = new NotContainsConstraint[EmptyTuple, U] {}
 
-  given [H, T <: Tuple, U](using nc: T NotContainsConstraint U, neq: U =:!= H): NotContainsConstraint[H *: T, U] =
+  given [H, T <: Tuple, U](using nc: NotContainsConstraint[T, U], neq: U =:!= H): NotContainsConstraint[H *: T, U] =
     new NotContainsConstraint[H *: T, U] {}
 end NotContainsConstraint

@@ -8,7 +8,7 @@ import scala.Tuple.Last
 object NonEmptyTupleOps:
   def mapN[T <: NonEmptyTuple, G[_] : Functor : Semigroupal, Z](tuple: NonEmptyMap[T, G])(f: T => Z): G[Z] =
     type F[A] = A match {case G[x] => x}
-    val reversed: NonEmptyTuple = TupleOps.reverse(tuple).asInstanceOf[NonEmptyTuple]
+    val reversed: NonEmptyTuple = TupleOps._reverse(tuple).asInstanceOf[NonEmptyTuple]
     val gt: G[T] = TupleOps.loop[G](
       reversed.tail,
       Functor[G].map(reversed.head.asInstanceOf[G[F[Last[NonEmptyMap[T, G]]]]])(_ *: EmptyTuple)

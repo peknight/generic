@@ -12,7 +12,7 @@ package object syntax:
 
     def nonEmpty: Boolean = TupleOps.nonEmpty(tuple)
 
-    def reverse: Reverse[T] = TupleOps.reverse(tuple)
+    def _reverse: Reverse[T] = TupleOps._reverse(tuple)
 
     def flatMap[F[_] <: Tuple](f: [A] => A => F[A]): Tuple.FlatMap[T, F] = TupleOps.flatMap[T, F](tuple)(f)
 

@@ -45,8 +45,8 @@ class TupleOpsSpecification extends Properties("TupleOps"):
   }
 
   property("reverse") = forAll { (a: String, b: Int, c: Boolean) =>
-    import com.peknight.generic.tuple.syntax.reverse
-    (a, b, c).reverse == (c, b, a)
+    import com.peknight.generic.tuple.syntax._reverse
+    (a, b, c)._reverse == (c, b, a)
   }
 
   property("zipWithIndex") = forAll {

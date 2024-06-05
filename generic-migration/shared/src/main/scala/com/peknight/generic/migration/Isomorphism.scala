@@ -9,7 +9,7 @@ trait Isomorphism[F[_], A, B]:
   def from(b: B): F[A]
 end Isomorphism
 object Isomorphism:
-  private[this] case class Iso[F[_], A, B](f: A => F[B], g: B => F[A]) extends Isomorphism[F, A, B]:
+  private case class Iso[F[_], A, B](f: A => F[B], g: B => F[A]) extends Isomorphism[F, A, B]:
     def to(a: A): F[B] = f(a)
     def from(b: B): F[A] = g(b)
   end Iso
