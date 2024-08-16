@@ -5,7 +5,7 @@ Scala3泛化编程，由于个人不太喜欢Shapeless3到处都是`Any`的API�
 
 ## generic-core
 
-#### `com.peknight.generic.deriving`包
+#### `com.peknight.generic`包
 
 参考Shapeless的`ProductInstances`与`CoproductInstances`实现`Generic.Product.Instances`与`Generic.Sum.Instances`。
 
