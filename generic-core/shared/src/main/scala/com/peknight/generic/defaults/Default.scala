@@ -16,17 +16,20 @@ trait Default[T] extends Serializable:
   def defaults: Map[Repr, Option]
 end Default
 object Default:
+  def instance[T, Repr0 <: Tuple](defaults0: => Map[Repr0, Option]): Default[T] =
+    new Default[T]:
+      type Repr = Repr0
+      lazy val defaults: Map[Repr, Option] = defaults0
 
   type Aux[T, Repr0 <: Tuple] = Default[T] { type Repr = Repr0 }
 
   transparent inline given mkDefault[T](using mirror: Mirror[T]): Default[T] =
-    new Default[T]:
-      type Repr = mirror.MirroredElemTypes
-      lazy val defaults: Map[Repr, Option] =
-        // summon the size of mirror.MirroredElemLabels (not mirror.MirroredElemTypes) because
-        // in some rare edge cases, the latter fails (and both always have the same size)
-        val size = constValue[Size[mirror.MirroredElemLabels]]
-        getDefaults[T](size).asInstanceOf[Map[Repr, Option]]
+    instance[T, mirror.MirroredElemTypes] {
+      // summon the size of mirror.MirroredElemLabels (not mirror.MirroredElemTypes) because
+      // in some rare edge cases, the latter fails (and both always have the same size)
+      val size = constValue[Size[mirror.MirroredElemLabels]]
+      getDefaults[T](size).asInstanceOf[Map[mirror.MirroredElemTypes, Option]]
+    }
   end mkDefault
 
   private[generic] inline def getDefaults[T](inline s: Int): Tuple = ${ getDefaultsImpl[T]('s) }

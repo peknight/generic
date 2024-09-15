@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.4.2"
+ThisBuild / scalaVersion := "3.5.0"
 
 ThisBuild / organization := "com.peknight"
 
@@ -47,7 +47,7 @@ lazy val genericScalaCheck = (crossProject(JSPlatform, JVMPlatform) in file("gen
     name := "generic-scalacheck",
     libraryDependencies ++= Seq(
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion,
-      "com.peknight" %%% "cats-instances-scalacheck" % pekCatsInstancesVersion,
+      "com.peknight" %%% "cats-instances-scalacheck" % pekInstancesVersion,
       "org.typelevel" %%% "cats-laws" % catsVersion % Test,
     ),
     scalacOptions --= Seq(
@@ -67,7 +67,7 @@ lazy val genericMigration = (crossProject(JSPlatform, JVMPlatform) in file("gene
       "-Xfatal-warnings",
     ),
     libraryDependencies ++= Seq(
-      "com.peknight" %%% "cats-instances-tuple" % pekCatsInstancesVersion % Test,
+      "com.peknight" %%% "cats-instances-tuple" % pekInstancesVersion % Test,
     ),
   )
 
@@ -88,7 +88,7 @@ lazy val genericMonocle = (crossProject(JSPlatform, JVMPlatform) in file("generi
   )
 
 val catsVersion = "2.12.0"
-val monocleVersion = "3.2.0"
+val monocleVersion = "3.3.0"
 val scalaCheckVersion = "1.18.0"
 val pekVersion = "0.1.0-SNAPSHOT"
-val pekCatsInstancesVersion = pekVersion
+val pekInstancesVersion = pekVersion
