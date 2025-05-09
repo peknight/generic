@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.6.2"
+ThisBuild / scalaVersion := "3.7.0"
 
 ThisBuild / organization := "com.peknight"
 
@@ -87,8 +87,8 @@ lazy val genericMonocle = (crossProject(JSPlatform, JVMPlatform) in file("generi
     ),
   )
 
-val catsVersion = "2.12.0"
+val catsVersion = "2.13.0"
 val monocleVersion = "3.3.0"
-val scalaCheckVersion = "1.18.0"
+val scalaCheckVersion = "1.18.1"
 val pekVersion = "0.1.0-SNAPSHOT"
 val pekInstancesVersion = pekVersion
