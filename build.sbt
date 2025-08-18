@@ -31,7 +31,7 @@ lazy val genericCore = (crossProject(JVMPlatform, JSPlatform, NativePlatform) in
 lazy val genericScalaCheck = (crossProject(JVMPlatform, JSPlatform, NativePlatform) in file("generic-scalacheck"))
   .dependsOn(genericCore)
   .settings(crossDependencies(scalaCheck, peknight.instances.cats.scalaCheck))
-  .settings(crossDependency(typelevel.cats.laws, Some(Test)))
+  .settings(crossTestDependencies(typelevel.cats.laws))
   .settings(
     name := "generic-scalacheck",
     scalacOptions --= Seq(
@@ -44,7 +44,7 @@ lazy val genericMigration = (crossProject(JVMPlatform, JSPlatform, NativePlatfor
     genericCore,
     genericScalaCheck % Test
   )
-  .settings(crossDependency(peknight.instances.cats.tuple, Some(Test)))
+  .settings(crossTestDependencies(peknight.instances.cats.tuple))
   .settings(
     name := "generic-migration",
     scalacOptions --= Seq(
