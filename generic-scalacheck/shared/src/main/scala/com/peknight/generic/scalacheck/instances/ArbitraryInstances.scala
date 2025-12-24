@@ -1,6 +1,6 @@
 package com.peknight.generic.scalacheck.instances
 
-import com.peknight.cats.instances.scalacheck.arbitrary.given
+import com.peknight.cats.scalacheck.instances.arbitrary.given
 import com.peknight.generic.Generic
 import org.scalacheck.{Arbitrary, Gen}
 

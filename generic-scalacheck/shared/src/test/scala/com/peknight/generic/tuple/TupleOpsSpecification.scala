@@ -6,7 +6,6 @@ import com.peknight.generic.tuple.ops.{NonEmptyTupleOps, TupleOps}
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck.{Prop, Properties}
 
-
 class TupleOpsSpecification extends Properties("TupleOps"):
 
   given CanEqual[Option[IceCream], Option[IceCream]] = CanEqual.derived

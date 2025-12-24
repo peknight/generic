@@ -8,7 +8,6 @@ import org.scalacheck.Shrink
 
 import scala.Tuple.Zip
 
-
 //noinspection ScalaDeprecation
 trait ShrinkInstances:
 

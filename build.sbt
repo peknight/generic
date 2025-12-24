@@ -32,7 +32,7 @@ lazy val genericScalaCheck = (crossProject(JVMPlatform, JSPlatform, NativePlatfo
       "-Xfatal-warnings",
     ),
   )
-  .settings(crossDependencies(scalaCheck, peknight.instances.cats.scalaCheck))
+  .settings(crossDependencies(scalaCheck, peknight.cats.scalaCheck))
   .settings(crossTestDependencies(typelevel.cats.laws))
 
 lazy val genericMigration = (crossProject(JVMPlatform, JSPlatform, NativePlatform) in file("generic-migration"))
@@ -46,7 +46,7 @@ lazy val genericMigration = (crossProject(JVMPlatform, JSPlatform, NativePlatfor
       "-Xfatal-warnings",
     ),
   )
-  .settings(crossTestDependencies(peknight.instances.cats.tuple))
+  .settings(crossTestDependencies(peknight.cats))
 
 lazy val genericMonocle = (crossProject(JVMPlatform, JSPlatform, NativePlatform) in file("generic-monocle"))
   .dependsOn(
