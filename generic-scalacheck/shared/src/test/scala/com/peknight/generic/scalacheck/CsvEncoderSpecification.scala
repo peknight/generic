@@ -1,6 +1,6 @@
 package com.peknight.generic.scalacheck
 
-import com.peknight.generic.scalacheck.Tree.given
+import com.peknight.cats.data.Tree
 import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
