@@ -18,8 +18,8 @@ package object compiletime:
       case _: (h *: t) => (summonOption[F[h]] *: summonOptionTuple[F, t]).asInstanceOf[Map[T, [X] =>> Option[F[X]]]]
 
   inline def summonSingletons[T <: Tuple]: Map[T, Option] =
-    summonOptionTuple[SMirror.ProductOf, T].map[[_] =>> Any]([T] => (t: T) =>
-      t.asInstanceOf[Option[SMirror.Product]].filter(_.isInstanceOf[SMirror.Singleton]).map(_.fromProduct(EmptyTuple))
+    summonOptionTuple[SMirror.ProductOf, T].map[[_] =>> Any]([X] => (x: X) =>
+      x.asInstanceOf[Option[SMirror.Product]].filter(_.isInstanceOf[SMirror.Singleton]).map(_.fromProduct(EmptyTuple))
     ).asInstanceOf[Map[T, Option]]
 
   inline def summonAllSingletons[T <: Tuple](inline typeName: Any): T =
