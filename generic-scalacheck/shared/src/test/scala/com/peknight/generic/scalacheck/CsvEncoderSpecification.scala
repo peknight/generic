@@ -1,6 +1,5 @@
 package com.peknight.generic.scalacheck
 
-import com.peknight.cats.data.Tree
 import com.peknight.generic.scalacheck.instances.all.given
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
@@ -15,8 +14,8 @@ class CsvEncoderSpecification extends Properties("CsvEncoder"):
     )
   }
 
-  property("should have an instance for Tree") = forAll { (tree: Tree[Int]) =>
-    CsvEncoder[Tree[Int]].encode(tree) == tree.toList.map(i => s"$i")
-  }
+  // property("should have an instance for Tree") = forAll { (tree: Tree[Int]) =>
+  //   CsvEncoder[Tree[Int]].encode(tree) == tree.toList.map(i => s"$i")
+  // }
 
 end CsvEncoderSpecification

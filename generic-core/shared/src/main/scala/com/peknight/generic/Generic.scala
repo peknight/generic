@@ -129,6 +129,14 @@ object Generic:
             val (instance, value) = e.asInstanceOf[(F[U], U)]
             f(instance, value).asInstanceOf[H[E]]
         }.asInstanceOf[Map[Repr, G]]
+      def combine(a1: A, a2: A)(f: [T] => (F[T], T, T) => T): A =
+        type H[E] = E match { case (_, (t, _)) => t }
+        from(instances.zip(to(a1).zip(to(a2))).map[H] {
+          [E] => (e: E) =>
+            type U = E match { case (_, (t, _)) => t }
+            val (instance, (value1, value2)) = e.asInstanceOf[(F[U], (U, U))]
+            f(instance, value1, value2).asInstanceOf[H[E]]
+        }.asInstanceOf[Repr])
       def mapWithGivenLabel[G[_]](a: A)(labels: Map[Repr, [X] =>> String])(f: [T] => (F[T], T, String) => G[T]): Map[Repr, G] =
         type H[E] = E match { case ((_, t), _) => G[t] }
         instances.zip(to(a)).zip(labels).map[H] {
