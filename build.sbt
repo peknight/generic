@@ -29,7 +29,7 @@ lazy val genericScalaCheck = (crossProject(JVMPlatform, JSPlatform, NativePlatfo
   .settings(
     name := "generic-scalacheck",
     scalacOptions --= Seq(
-      "-Xfatal-warnings",
+      "-Werror",
     ),
   )
   .settings(crossDependencies(scalaCheck, peknight.cats.scalaCheck))
@@ -46,7 +46,7 @@ lazy val genericMigration = (crossProject(JVMPlatform, JSPlatform, NativePlatfor
   .settings(
     name := "generic-migration",
     scalacOptions --= Seq(
-      "-Xfatal-warnings",
+      "-Werror",
     ),
   )
   .settings(crossTestDependencies(peknight.cats))
