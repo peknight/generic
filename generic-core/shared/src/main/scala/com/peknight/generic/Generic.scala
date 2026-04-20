@@ -7,6 +7,7 @@ import com.peknight.generic.tuple.Map
 import com.peknight.generic.tuple.syntax.{foldLeft, foldRight, mapN, zipWithIndex}
 
 import scala.Tuple.Size
+import scala.annotation.tailrec
 import scala.compiletime.{constValue, constValueTuple, summonAll}
 
 sealed trait Generic[A]:
@@ -254,6 +255,24 @@ object Generic:
     def label(a: A): String = label(ordinal(a))
     def isProduct: Boolean = false
     def isSum: Boolean = true
+
+    private def labeledSingletonsAndSums: List[(String, Option[A], Option[Generic.Sum[? <: A]])] =
+      labels.zip(singletons).zip(sums).toList
+        .asInstanceOf[List[((String, Option[A]), Option[Generic.Sum[? <: A]])]]
+        .map { case ((label, singletonOpt), sumOpt) => (label, singletonOpt, sumOpt) }
+
+    def labeledSingletons: List[(String, A)] =
+      @tailrec def go(acc: List[(String, A)], list: List[(String, Option[A], Option[Generic.Sum[? <: A]])])
+      : List[(String, A)] =
+        list match
+          case Nil => acc
+          case (label, Some(singleton), _) :: tail => go((label, singleton) :: acc, tail)
+          case (_, _, Some(sum)) :: tail => go(acc, sum.labeledSingletonsAndSums ::: tail)
+          case _ :: tail => go(acc, tail)
+      go(List.empty, labeledSingletonsAndSums).reverse
+    end labeledSingletons
+
+    def values: List[A] = labeledSingletons.map(_._2)
   end Sum
 
   object Sum:
