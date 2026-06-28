@@ -3,60 +3,101 @@ import com.peknight.build.sbt.*
 
 commonSettings
 
+ThisBuild / evictionErrorLevel := Level.Warn
+ThisBuild / scalacOptions --= Seq("-Werror", "-Xfatal-warnings")
+
 lazy val generic = (project in file("."))
   .settings(name := "generic")
-  .aggregate(
-    genericCore.jvm,
-    genericCore.js,
-    genericCore.native,
-    genericScalaCheck.jvm,
-    genericScalaCheck.js,
-    genericMigration.jvm,
-    genericMigration.js,
-    genericMonocle.jvm,
-    genericMonocle.js,
-  )
+  .aggregate(genericCore.projectRefs *)
+  .aggregate(genericScalaCheck.projectRefs *)
+  .aggregate(genericMigration.projectRefs *)
+  .aggregate(genericMonocle.projectRefs *)
 
-lazy val genericCore = (crossProject(JVMPlatform, JSPlatform, NativePlatform) in file("generic-core"))
+lazy val genericCore = (projectMatrix in file("generic-core"))
   .settings(name := "generic-core")
-  .settings(crossDependencies(typelevel.cats))
+  .settings(libraryDependencies ++= dependencies(typelevel.cats))
+  .jvmPlatform(scalaVersions = Seq(scala.scala3.version))
+  .jsPlatform(scalaVersions = Seq(scala.scala3.version))
+  .nativePlatform(scalaVersions = Seq(scala.scala3.version))
 
-lazy val genericScalaCheck = (crossProject(JVMPlatform, JSPlatform) in file("generic-scalacheck"))
+lazy val genericScalaCheck = (projectMatrix in file("generic-scalacheck"))
   .dependsOn(genericCore)
-  .settings(
-    name := "generic-scalacheck",
-    scalacOptions --= Seq(
-      "-Werror",
-    ),
-  )
-  .settings(crossDependencies(scalaCheck, peknight.cats.scalaCheck))
-  .settings(crossTestDependencies(
+  .settings(name := "generic-scalacheck")
+  .settings(libraryDependencies ++= dependencies(
+    scalaCheck,
+    peknight.cats.scalaCheck,
+  ))
+  .settings(libraryDependencies ++= testDependencies(
     peknight.cats,
     typelevel.cats.laws,
   ))
-
-lazy val genericMigration = (crossProject(JVMPlatform, JSPlatform) in file("generic-migration"))
-  .dependsOn(
-    genericCore,
-    genericScalaCheck % Test
+  .jvmPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
   )
-  .settings(
-    name := "generic-migration",
-    scalacOptions --= Seq(
-      "-Werror",
-    ),
+  .jsPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
   )
-  .settings(crossTestDependencies(peknight.cats))
+  .nativePlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
+  )
 
-lazy val genericMonocle = (crossProject(JVMPlatform, JSPlatform) in file("generic-monocle"))
+lazy val genericMigration = (projectMatrix in file("generic-migration"))
   .dependsOn(
     genericCore,
     genericScalaCheck % Test,
   )
-  .settings(
-    name := "generic-monocle",
-    scalacOptions --= Seq(
-      "-Xfatal-warnings",
-    ),
+  .settings(name := "generic-migration")
+  .settings(libraryDependencies ++= testDependencies(peknight.cats))
+  .jvmPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
   )
-  .settings(crossDependencies(optics.monocle))
+  .jsPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
+  )
+  .nativePlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Werror")
+    )
+  )
+
+lazy val genericMonocle = (projectMatrix in file("generic-monocle"))
+  .dependsOn(
+    genericCore,
+    genericScalaCheck % Test,
+  )
+  .settings(name := "generic-monocle")
+  .settings(libraryDependencies ++= dependencies(optics.monocle))
+  .jvmPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Xfatal-warnings")
+    )
+  )
+  .jsPlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Xfatal-warnings")
+    )
+  )
+  .nativePlatform(
+    scalaVersions = Seq(scala.scala3.version),
+    settings = Seq(
+      scalacOptions --= Seq("-Xfatal-warnings")
+    )
+  )
